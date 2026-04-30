@@ -50,8 +50,12 @@ namespace WebAppExperimental26.Tests.Services
             };
             var aadSettings = new AzureADSettings
             {
+                Authority = "https://login.microsoftonline.com/test-tenant",
+                Instance = "https://login.microsoftonline.com/",
+                Domain = "test.onmicrosoft.com",
                 TenantId = "test-tenant",
-                ClientId = "test-client"
+                ClientId = "test-client",
+                ClientCredentials = new List<ClientCredential>()
             };
 
             _mockKvSettings.Setup(x => x.GetSettings()).Returns(kvSettings);
@@ -77,6 +81,9 @@ namespace WebAppExperimental26.Tests.Services
             // Arrange
             var aadSettings = new AzureADSettings
             {
+                Authority = "https://login.microsoftonline.com/test-tenant",
+                Instance = "https://login.microsoftonline.com/",
+                Domain = "test.onmicrosoft.com",
                 TenantId = "test-tenant",
                 ClientId = "test-client",
                 ClientCredentials = new List<ClientCredential>
@@ -91,7 +98,8 @@ namespace WebAppExperimental26.Tests.Services
             var nonceSettings = new NonceEncryptionSettings
             {
                 KeyVaultURL = "https://test-vault.vault.azure.net/",
-                IVSecret = "iv-secret"
+                IVSecret = "iv-secret",
+                NonceKeySecret = "nonce-key-secret"
             };
 
             _mockAadSettings.Setup(x => x.GetSettings()).Returns(aadSettings);
@@ -120,6 +128,9 @@ namespace WebAppExperimental26.Tests.Services
             // Arrange
             var aadSettings = new AzureADSettings
             {
+                Authority = "https://login.microsoftonline.com/test-tenant",
+                Instance = "https://login.microsoftonline.com/",
+                Domain = "test.onmicrosoft.com",
                 TenantId = "test-tenant",
                 ClientId = "test-client",
                 ClientCredentials = new List<ClientCredential>
@@ -134,6 +145,7 @@ namespace WebAppExperimental26.Tests.Services
             var nonceSettings = new NonceEncryptionSettings
             {
                 KeyVaultURL = "https://test-vault.vault.azure.net/",
+                IVSecret = "iv-secret",
                 NonceKeySecret = "nonce-key-secret"
             };
 

@@ -17,6 +17,7 @@ namespace WebAppExperimental26.Tests.Models
                     TenantId = "test-tenant",
                     ClientId = "test-client",
                     CallbackPath = "/signin-oidc",
+                    SignedOutCallbackPath = "/signout-callback-oidc",
                     Authority = "https://login.microsoftonline.com/test-tenant",
                     ClientCredentials = new List<ClientCredential>()
                 };
@@ -33,6 +34,11 @@ namespace WebAppExperimental26.Tests.Models
                 // Act
                 var settings = new AzureADSettings
                 {
+                    Authority = "https://login.microsoftonline.com/test-tenant",
+                    Instance = "https://login.microsoftonline.com/",
+                    Domain = "test.onmicrosoft.com",
+                    TenantId = "test-tenant",
+                    ClientId = "test-client",
                     ClientCredentials = new List<ClientCredential>()
                 };
 
@@ -181,6 +187,119 @@ namespace WebAppExperimental26.Tests.Models
                 // Assert
                 settings.ManuallyCalculatedInlineHash1.Should().BeNull();
                 settings.ManuallyCalculatedInlineHash2.Should().BeNull();
+            }
+        }
+
+        public class MtlsSettingsTests
+        {
+            [Fact]
+            public void DefaultValues_AreSetCorrectly()
+            {
+                // Act
+                var settings = new MtlsSettings();
+
+                // Assert
+                settings.RequireClientCertificate.Should().BeTrue();
+                settings.AllowCertificateChains.Should().BeTrue();
+                settings.AllowSelfSignedCertificates.Should().BeFalse();
+                settings.CheckCertificateRevocation.Should().BeFalse();
+                settings.ValidateClientCertificateIssuer.Should().BeTrue();
+                settings.ClientCertificateName.Should().BeNull();
+            }
+
+            [Fact]
+            public void AllProperties_CanBeSet()
+            {
+                // Act
+                var settings = new MtlsSettings
+                {
+                    RequireClientCertificate = false,
+                    AllowCertificateChains = false,
+                    AllowSelfSignedCertificates = true,
+                    CheckCertificateRevocation = true,
+                    ClientCertificateName = "my-client-cert",
+                    ValidateClientCertificateIssuer = false
+                };
+
+                // Assert
+                settings.RequireClientCertificate.Should().BeFalse();
+                settings.AllowCertificateChains.Should().BeFalse();
+                settings.AllowSelfSignedCertificates.Should().BeTrue();
+                settings.CheckCertificateRevocation.Should().BeTrue();
+                settings.ClientCertificateName.Should().Be("my-client-cert");
+                settings.ValidateClientCertificateIssuer.Should().BeFalse();
+            }
+
+            [Fact]
+            public void ClientCertificateName_CanBeNull()
+            {
+                // Act
+                var settings = new MtlsSettings
+                {
+                    ClientCertificateName = null
+                };
+
+                // Assert
+                settings.ClientCertificateName.Should().BeNull();
+            }
+        }
+
+        public class OcspSettingsTests
+        {
+            [Fact]
+            public void DefaultValues_AreSetCorrectly()
+            {
+                // Act
+                var settings = new OcspSettings();
+
+                // Assert
+                settings.EnableOcspValidation.Should().BeFalse();
+                settings.RequestTimeoutSeconds.Should().Be(30);
+                settings.MaxRetryAttempts.Should().Be(3);
+                settings.CacheDurationMinutes.Should().Be(60);
+                settings.ServerUnavailableBehavior.Should().Be("Warn");
+                settings.EnableDetailedLogging.Should().BeFalse();
+                settings.SkipValidationInDevelopment.Should().BeTrue();
+            }
+
+            [Fact]
+            public void AllProperties_CanBeSet()
+            {
+                // Act
+                var settings = new OcspSettings
+                {
+                    EnableOcspValidation = true,
+                    OcspServerUrl = "https://ocsp.example.com",
+                    RequestTimeoutSeconds = 60,
+                    MaxRetryAttempts = 5,
+                    CacheDurationMinutes = 120,
+                    ServerUnavailableBehavior = "Fail",
+                    EnableDetailedLogging = true,
+                    SkipValidationInDevelopment = false
+                };
+
+                // Assert
+                settings.EnableOcspValidation.Should().BeTrue();
+                settings.OcspServerUrl.Should().Be("https://ocsp.example.com");
+                settings.RequestTimeoutSeconds.Should().Be(60);
+                settings.MaxRetryAttempts.Should().Be(5);
+                settings.CacheDurationMinutes.Should().Be(120);
+                settings.ServerUnavailableBehavior.Should().Be("Fail");
+                settings.EnableDetailedLogging.Should().BeTrue();
+                settings.SkipValidationInDevelopment.Should().BeFalse();
+            }
+
+            [Fact]
+            public void OcspServerUrl_CanBeNull()
+            {
+                // Act
+                var settings = new OcspSettings
+                {
+                    OcspServerUrl = null
+                };
+
+                // Assert
+                settings.OcspServerUrl.Should().BeNull();
             }
         }
     }

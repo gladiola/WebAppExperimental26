@@ -13,19 +13,19 @@ namespace WebAppExperimental26.Tests.Models
                 Id = 1,
                 FacilityCode = "FC123",
                 CardNumber = "12345",
-                Name = "Test Facility",
-                Address = "123 Test St",
-                City = "Test City",
-                State = "TS",
-                Zip = "12345",
-                Country = "Test Country"
+                CompanyName = "Test Facility",
+                LocationAddress = "123 Test St",
+                LocationCity = "Test City",
+                LocationState = "TS",
+                LocationZip = "12345",
+                RFIDContent = "test-rfid"
             };
 
             // Assert
             record.Id.Should().Be(1);
             record.FacilityCode.Should().Be("FC123");
             record.CardNumber.Should().Be("12345");
-            record.Name.Should().Be("Test Facility");
+            record.CompanyName.Should().Be("Test Facility");
         }
 
         [Fact]
@@ -36,9 +36,9 @@ namespace WebAppExperimental26.Tests.Models
 
             // Assert
             record.Id.Should().Be(0);
-            record.FacilityCode.Should().BeNull();
-            record.CardNumber.Should().BeNull();
-            record.Name.Should().BeNull();
+            record.FacilityCode.Should().NotBeNull(); // Has default value
+            record.CardNumber.Should().NotBeNull(); // Has default value
+            record.CompanyName.Should().NotBeNull(); // Has default value
         }
 
         [Fact]
@@ -72,13 +72,13 @@ namespace WebAppExperimental26.Tests.Models
             {
                 FacilityCode = value,
                 CardNumber = value,
-                Name = value
+                CompanyName = value
             };
 
             // Assert
             record.FacilityCode.Should().Be(value);
             record.CardNumber.Should().Be(value);
-            record.Name.Should().Be(value);
+            record.CompanyName.Should().Be(value);
         }
     }
 }

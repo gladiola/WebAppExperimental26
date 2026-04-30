@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using WebAppExperimental26.Models.Settings;
 
 namespace WebAppExperimental26.Tests.Integration
@@ -130,7 +131,7 @@ namespace WebAppExperimental26.Tests.Integration
     /// </summary>
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
         {
             builder.ConfigureServices(services =>
             {

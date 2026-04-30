@@ -25,21 +25,21 @@
     <Folder Include="wwwroot\Downloads\" />
   </ItemGroup>
 
-	<!-- Prepublish task to download configurations -->
-	<Target Name="PrepublishConfigurationDownload" BeforeTargets="Build">
+	<!-- Prepublish task to download configurations - Disabled for now -->
+	<!-- <Target Name="PrepublishConfigurationDownload" BeforeTargets="Build">
 		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)SupportingScripts\ExportResourceGroups.ps1&quot;" />
-	</Target>
+	</Target> -->
 
-	<!-- Calculate file hashes after building -->
-	<Target Name="CalculateHashes" AfterTargets="PrepublishConfigurationDownload;Build">
+	<!-- Calculate file hashes after building - Disabled for now -->
+	<!-- <Target Name="CalculateHashes" AfterTargets="PrepublishConfigurationDownload;Build">
 			<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;function Get-FileHashes { param([string]$path) Get-ChildItem -Path $path -Recurse -File | ForEach-Object { $hash = Get-FileHash -Path $_.FullName -Algorithm SHA256; $bytes = [byte[]]::new($hash.Hash.Length / 2); for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { $bytes[$i / 2] = [Convert]::ToByte($hash.Hash.Substring($i, 2), 16); } $base64Hash = [Convert]::ToBase64String($bytes); $_.FullName +' sha256-' + $base64Hash } } Get-FileHashes '$(ProjectDir)*' | Out-File -FilePath '$(ProjectDir)ConfigurationsAndCodeChecks/LastBuildHashes.txt' -Encoding utf8;&quot;" />
-	</Target>
+	</Target> -->
 
-	<!-- Git commit and push after building or publishing -->
-	<Target Name="GitCommitAndPush" AfterTargets="Build;Publish">
+	<!-- Git commit and push after building or publishing - Disabled for now -->
+	<!-- <Target Name="GitCommitAndPush" AfterTargets="Build;Publish">
 		<Exec Command="git add ." />
 		<Exec Command="git commit -m &quot;Automated commit from MSBuild&quot;" />
 		<Exec Command="git push origin master" />
-	</Target>
+	</Target> -->
 
 </Project>
