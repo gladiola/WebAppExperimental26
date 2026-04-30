@@ -2,9 +2,8 @@
 using WebAppExperimental26.AzureKeyVaultOperations;
 using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.Settings;
-using WebAppExperimental26.Services;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     public interface INonceRefresherService {
         public Task<string> RefreshNonceAsync();
@@ -58,7 +57,7 @@ namespace REDRFID.Services
 
                     var clientSecretElement = aads.ClientCredentials.FirstOrDefault(cc => cc.SourceType == "ApplicationSecret");
 
-                string clientSecretValue = clientSecretElement?.ClientSecret! ?? String.Empty;
+                string clientSecretValue = clientSecretElement?.ClientSecret! ?? string.Empty;
 
                 NonceEncryptionSettings nes = _nonceEncryptionSettingsService.GetSettings();
 

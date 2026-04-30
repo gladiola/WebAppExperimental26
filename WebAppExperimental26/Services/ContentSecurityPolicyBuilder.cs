@@ -3,7 +3,7 @@ using System.Text;
 using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.Settings;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     public class ContentSecurityPolicyBuilder
     {
@@ -25,7 +25,7 @@ namespace REDRFID.Services
 
             try
             {
-                string fullFilePath = System.IO.Path.Combine(filePath);
+                string fullFilePath = Path.Combine(filePath);
 
                 // Read the file line by line
                 using (StreamReader reader = new StreamReader(filePath))

@@ -25,10 +25,6 @@
     <Folder Include="ConfigurationsAndCodeChecks\" />
     <Folder Include="wwwroot\Downloads\" />
   </ItemGroup>
-	
-		<ItemGroup>
-	  <None Include="wwwroot\Downloads\RFID-Risk-Registry-01.xlsx" />
-	</ItemGroup>
 
 
 	<!-- Prepublish task to download configurations -->
@@ -50,10 +46,6 @@
 		<Exec Command="git commit -m &quot;Automated commit from MSBuild&quot;" />
 		<Exec Command="git push origin master" />
 	</Target>
-
-	<ItemGroup>
-		<None Include="wwwroot\Downloads\RFID-Risk-Registry-01.xlsx" />
-	</ItemGroup>
 
 
 	<!-- Prepublish task to download configurations -->

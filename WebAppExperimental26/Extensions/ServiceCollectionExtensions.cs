@@ -10,6 +10,7 @@ using WebAppExperimental26.Models.Settings;
 using WebAppExperimental26.Services;
 using WebAppExperimental26.AzureKeyVaultOperations;
 using WebAppExperimental26.Models.Storage;
+using WebAppExperimental26.Interfaces.Main_Objects;
 
 namespace WebAppExperimental26.Extensions
 {
@@ -122,11 +123,8 @@ namespace WebAppExperimental26.Extensions
             {
                 if (enableAuthorization)
                 {
-                    options.Conventions.AuthorizeFolder("/Red");
-                    options.Conventions.AuthorizeFolder("/Red/SearchBy");
-                    options.Conventions.AuthorizeFolder("/Red/FileUploads");
-                    options.Conventions.AuthorizeFolder("/Red/DataEntry");
-                    options.Conventions.AuthorizeFolder("/Red/RiskRegistry");
+                    options.Conventions.AuthorizeFolder("/Experimental");
+
                 }
 
                 options.Conventions.AllowAnonymousToPage("/Privacy");
