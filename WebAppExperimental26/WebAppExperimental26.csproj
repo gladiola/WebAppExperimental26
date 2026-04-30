@@ -15,4 +15,8 @@
     <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\libs\red-rfid-aclj-project01SEP2025C\REDRFID\REDRFID\REDRFID.csproj" />
+  </ItemGroup>
+
 </Project>
