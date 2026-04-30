@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -18,7 +17,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Configuration;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
@@ -29,7 +27,6 @@ using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.Settings;
 using WebAppExperimental26.Models.Storage;
 using WebAppExperimental26.Extensions;
-using WebAppExperimental26.Models.Settings;
 
 namespace WebAppExperimental26
 {
@@ -44,7 +41,6 @@ namespace WebAppExperimental26
             var loggerFactory = LoggerFactory.Create(loggingBuilder =>
             {
                 loggingBuilder.AddConsole();
-                loggingBuilder.AddAzureWebAppDiagnostics();
             });
 
             var logger = loggerFactory.CreateLogger("Program");
@@ -69,6 +65,15 @@ namespace WebAppExperimental26
                 builder.Configuration,
                 logger,
                 featureFlags.EnableAzureAd);
+
+            // Phase 2.5: mTLS Client Certificate Authentication (if enabled)
+            if (featureFlags.EnableMtls)
+            {
+                builder.Services.AddMtlsAuthentication(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableMtls);
+            }
 
             builder.Services.AddRazorPagesConfiguration(
                 logger,

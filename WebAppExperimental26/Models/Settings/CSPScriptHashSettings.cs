@@ -2,11 +2,10 @@
 {
     public class CSPScriptHashSettings
     {
-
-
         public CSPScriptHashSettings() { }
 
-        public required string CSPScriptHashFilePath { get; set; }
-        public required string ManuallyCalculatedInlineHash1 { get; set; }
+        public string? HashFilePath { get; set; }
+        public string? CSPScriptHashFilePath { get; set; }
+        public string? ManuallyCalculatedInlineHash1 { get; set; }
     }
 }

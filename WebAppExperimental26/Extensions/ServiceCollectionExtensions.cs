@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -195,6 +197,10 @@ namespace WebAppExperimental26.Extensions
 
                 logger.LogInformation("Server certificate retrieved from Key Vault");
 
+                // Get mTLS settings if available
+                var mtlsSettings = configuration.GetSection("MtlsSettings").Get<MtlsSettings>();
+                var enableMtls = mtlsSettings?.RequireClientCertificate ?? false;
+
                 // Configure Kestrel
                 builder.WebHost.ConfigureKestrel(serverOptions =>
                 {
@@ -203,6 +209,25 @@ namespace WebAppExperimental26.Extensions
                         if (!environment.IsDevelopment())
                         {
                             httpsOptions.ServerCertificate = serverCert;
+                            
+                            // Configure client certificate mode for mTLS
+                            if (enableMtls)
+                            {
+                                httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+                                logger.LogInformation("mTLS enabled - Client certificates REQUIRED");
+                            }
+                            else
+                            {
+                                httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
+                                logger.LogInformation("mTLS disabled - Client certificates optional");
+                            }
+                        }
+                        else
+                        {
+                            // In development, make client certificates optional
+                            httpsOptions.ServerCertificate = serverCert;
+                            httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
+                            logger.LogInformation("Development mode - Client certificates optional");
                         }
                     });
                 });
@@ -213,6 +238,86 @@ namespace WebAppExperimental26.Extensions
                 throw;
             }
 
+            return services;
+        }
+
+        /// <summary>
+        /// Configure mutual TLS (mTLS) client certificate authentication
+        /// </summary>
+        public static IServiceCollection AddMtlsAuthentication(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("mTLS Client Certificate Authentication is DISABLED");
+                return services;
+            }
+
+            var mtlsSettings = configuration.GetSection("MtlsSettings").Get<MtlsSettings>()
+                ?? throw new InvalidOperationException("MtlsSettings not found");
+
+            logger.LogInformation("Configuring mTLS certificate authentication");
+
+            services.AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
+                .AddCertificate(options =>
+                {
+                    // Configure certificate types
+                    if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
+                    {
+                        options.AllowedCertificateTypes = CertificateTypes.All;
+                        logger.LogWarning("mTLS: Allowing both chained AND self-signed certificates");
+                    }
+                    else if (mtlsSettings.AllowSelfSignedCertificates)
+                    {
+                        options.AllowedCertificateTypes = CertificateTypes.SelfSigned;
+                        logger.LogWarning("mTLS: Allowing self-signed certificates only");
+                    }
+                    else
+                    {
+                        options.AllowedCertificateTypes = CertificateTypes.Chained;
+                        logger.LogInformation("mTLS: Allowing chained certificates only (recommended)");
+                    }
+
+                    // Configure revocation mode
+                    options.RevocationMode = mtlsSettings.CheckCertificateRevocation 
+                        ? X509RevocationMode.Online 
+                        : X509RevocationMode.NoCheck;
+
+                    logger.LogInformation("mTLS: Certificate revocation check = {RevocationCheck}", 
+                        mtlsSettings.CheckCertificateRevocation ? "ENABLED" : "DISABLED");
+
+                    // Configure authentication events
+                    options.Events = new CertificateAuthenticationEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            logger.LogError("mTLS Authentication FAILED: {Error}", context.Exception?.Message);
+                            return Task.CompletedTask;
+                        },
+                        OnCertificateValidated = context =>
+                        {
+                            logger.LogInformation("mTLS Authentication SUCCEEDED for certificate: {Subject}", 
+                                context.ClientCertificate.Subject);
+                            
+                            // Additional custom validation can be added here
+                            if (mtlsSettings.ValidateClientCertificateIssuer)
+                            {
+                                // Example: Validate specific issuer
+                                // if (!context.ClientCertificate.Issuer.Contains("Expected Issuer"))
+                                // {
+                                //     context.Fail("Certificate issuer not trusted");
+                                // }
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+
+            logger.LogInformation("mTLS certificate authentication configured successfully");
             return services;
         }
 

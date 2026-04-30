@@ -13,6 +13,6 @@
         /// <summary>
         /// Be able to limit the number of items per blob container
         /// </summary>
-        public int? MaxAttachments { get; set; } = 0;
+        public int MaxAttachments { get; set; } = 10;
     }
 }

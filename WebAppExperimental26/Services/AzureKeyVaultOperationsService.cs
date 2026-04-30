@@ -6,27 +6,27 @@ namespace WebAppExperimental26.Services
 {
     public interface IAzureKeyVaultOperationsService {
         public Task<KeyVaultSecret> FetchSecret();
-        public Task<X509Certificate2> FetchCertificate();
-
-        public Task<X509Certificate2> FetchCertificateServer();
-
+        public Task<X509Certificate2?> FetchCertificate();
+        public Task<X509Certificate2?> FetchCertificateServer();
         public Task<KeyVaultSecret> FetchSecretIVSecret();
-
         public Task<KeyVaultSecret> FetchSecretNonceKeySecret();
     }
 
     public class AzureKeyVaultOperationsService : IAzureKeyVaultOperationsService
     {
-
         private readonly ILogger<AzureKeyVaultOperationsService> _logger;
         private readonly IKeyVaultSettingsService _keyVaultSettingsService;
         private readonly IAzureADSettingsService _azureADSettingsService;
         private readonly INonceEncryptionSettingsService _nonceEncryptionSettingsService;
         private readonly IAzureKeyVaultCertificateOperations _azureKeyVaultCertificateOperations;
 
-        public AzureKeyVaultOperationsService(ILogger<AzureKeyVaultOperationsService> logger, IKeyVaultSettingsService keyVaultSettingsService, IAzureADSettingsService azureADSettingsService, INonceEncryptionSettingsService nonceEncryptionSettingsService, IAzureKeyVaultCertificateOperations azureKeyVaultCertificateOperations)
+        public AzureKeyVaultOperationsService(
+            ILogger<AzureKeyVaultOperationsService> logger, 
+            IKeyVaultSettingsService keyVaultSettingsService, 
+            IAzureADSettingsService azureADSettingsService, 
+            INonceEncryptionSettingsService nonceEncryptionSettingsService, 
+            IAzureKeyVaultCertificateOperations azureKeyVaultCertificateOperations)
         {
-
             _logger = logger;
             _keyVaultSettingsService = keyVaultSettingsService;
             _azureADSettingsService = azureADSettingsService;
@@ -39,12 +39,12 @@ namespace WebAppExperimental26.Services
             throw new NotImplementedException();
         }
 
-        public Task<X509Certificate2> FetchCertificate()
+        public Task<X509Certificate2?> FetchCertificate()
         {
             throw new NotImplementedException();
         }
 
-        public Task<X509Certificate2> FetchCertificateServer()
+        public Task<X509Certificate2?> FetchCertificateServer()
         {
             string tenantId = _azureADSettingsService.GetSettings().TenantId;
             string clientId = _azureADSettingsService.GetSettings().ClientId;
@@ -57,7 +57,6 @@ namespace WebAppExperimental26.Services
 
         public Task<KeyVaultSecret> FetchSecretIVSecret()
         {
-
             string tenantId = _azureADSettingsService.GetSettings().TenantId;
             string clientId = _azureADSettingsService.GetSettings().ClientId;
 
@@ -68,10 +67,7 @@ namespace WebAppExperimental26.Services
             string ivSecret = _nonceEncryptionSettingsService.GetSettings().IVSecret;
 
             return _azureKeyVaultCertificateOperations.GetSecretFromKeyVault(tenantId, clientId, clientSecretValue, keyVaultURL, ivSecret);
-
         }
-
-
 
         public Task<KeyVaultSecret> FetchSecretNonceKeySecret()
         {

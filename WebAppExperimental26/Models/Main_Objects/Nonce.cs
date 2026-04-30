@@ -1,25 +1,18 @@
 ﻿using Azure.Security.KeyVault.Secrets;
-using Microsoft.Azure.Cosmos.Core;
 using Microsoft.Extensions.Logging;
-using REDRFID.AzureKeyVaultOperations;
-using REDRFID.Models.Settings;
-using REDRFID.Services;
-using System.Security;
+using WebAppExperimental26.Services;
 using System.Security.Cryptography;
 
 namespace WebAppExperimental26.Models.Main_Objects
 {
     public interface INonce
     {
-
         string GetNonceAsString();
-
     }
 
     public class Nonce : INonce
     {
         private readonly string _nonce;
-
         private readonly ILogger<Nonce> _logger;
 
         /// <summary>
@@ -29,9 +22,7 @@ namespace WebAppExperimental26.Models.Main_Objects
         {
             _logger = logger;
             _nonce = GenerateEncryptedNonce(iv, key);
-
         }
-
 
         /// <summary>
         /// Use an IV and a Key from KeyVault to encrypt a random number.
@@ -53,12 +44,10 @@ namespace WebAppExperimental26.Models.Main_Objects
             }
             string randomNumberAsString = BitConverter.ToString(randomNumber).Replace("-", "");
 
-
             if (!string.IsNullOrEmpty(randomNumberAsString)
                 && randomNumber != null
                 && ivBytes != null
-                && keyBytes != null
-                )
+                && keyBytes != null)
             {
                 try
                 {
@@ -71,35 +60,25 @@ namespace WebAppExperimental26.Models.Main_Objects
                     Array.Copy(tag, 0, result, ciphertext.Length, tag.Length);
                     answer = Convert.ToBase64String(result);
                 }
-
                 catch (ArgumentNullException ex)
                 {
                     LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, $"Nonce generation exception {ex.Message}");
-                    
                 }
                 catch (ArgumentException ex)
                 {
                     LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, $"Nonce generation exception {ex.Message}");
-                   
                 }
                 catch (Exception ex)
                 {
                     LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, $"Nonce generation exception {ex.Message}");
-                 
                 }
-
-
-
             }
             else
             {
-
                 LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Failure, $"Nonce missing starting components.");
-
             }
 
             return answer;
-
         }
 
         /// <summary>
@@ -109,54 +88,6 @@ namespace WebAppExperimental26.Models.Main_Objects
         public string GetNonceAsString()
         {
             return _nonce;
-        }
-
-
-        public void GenerateAndLogAFreshNonce() {
-
-
-            /*
-            try
-            {
-
-                AzureADSettings aads = builder.Configuration.GetSection("AzureAD").Get<AzureADSettings>()! ?? throw new InvalidOperationException("Values for AzureADSettings not found.")!;
-
-                var clientSecretElement = aads.ClientCredentials.FirstOrDefault(cc => cc.SourceType == "ClientSecret");
-                string clientSecretValue = clientSecretElement?.ClientSecret! ?? String.Empty;
-
-                NonceEncryptionSettings nes = builder.Configuration.GetSection("NonceEncryption").Get<NonceEncryptionSettings>()! ?? throw new InvalidOperationException("Values for NonceEncryptionSettings not found.")!;
-
-                var akvoLogger = loggerFactory.CreateLogger<AzureKeyVaultCertificateOperations>();
-                var akvo = new AzureKeyVaultCertificateOperations(akvoLogger);
-
-                var fetchIV = await akvo.GetSecretFromKeyVault(aads.TenantId, aads.ClientId, clientSecretValue, nes.KeyVaultURL, nes.IVSecret);
-                var fetchEncKey = await akvo.GetSecretFromKeyVault(aads.TenantId, aads.ClientId, clientSecretValue, nes.KeyVaultURL, nes.NonceKeySecret);
-
-
-                var nonceLogger = _logger;
-
-                Nonce nonce = new Nonce(nonceLogger, fetchIV, fetchEncKey);
-                CSPNonce = nonce.GetNonceAsString();
-                if (string.IsNullOrEmpty(CSPNonce))
-                {
-                    LoggingHelper.LogDataProcessingStatusServiceWork(logger, caller, "", DataProcessingStatus.Failure, $"Did not generate Nonce.");
-                }
-                else
-                {
-                    LoggingHelper.LogDataProcessingStatusServiceWork(logger, caller, "", DataProcessingStatus.Success, $"Generated Nonce: {CSPNonce}");
-                }
-
-                // working
-                var nonceService = app.Services.GetRequiredService<INonceCatalogService>();
-                nonceService.AddANonce("CSPNonce", nonce);
-
-            }
-            catch (Exception ex)
-            {
-                LoggingHelper.LogDataProcessingStatusServiceWork(logger, caller, "", DataProcessingStatus.Exception, ex.Message);
-
-            }
-            */
         }
     }
 }

@@ -12,5 +12,6 @@ namespace WebAppExperimental26.Models.Settings
         public bool EnableCosmosDb { get; set; } = false;
         public bool EnableSecurityHeaders { get; set; } = true;
         public bool EnableCSP { get; set; } = true;
+        public bool EnableMtls { get; set; } = false;
     }
 }
