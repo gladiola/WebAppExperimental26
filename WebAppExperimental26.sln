@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "REDRFID", "REDRFID", "{7912
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REDRFID", "libs\red-rfid-aclj-project01SEP2025C\REDRFID\REDRFID\REDRFID.csproj", "{5B4098B1-0D79-490D-AFD9-78BB417814C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAppExperimental26.Tests", "WebAppExperimental26.Tests\WebAppExperimental26.Tests.csproj", "{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,18 @@ Global
 		{5B4098B1-0D79-490D-AFD9-78BB417814C0}.Release|x64.Build.0 = Release|Any CPU
 		{5B4098B1-0D79-490D-AFD9-78BB417814C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{5B4098B1-0D79-490D-AFD9-78BB417814C0}.Release|x86.Build.0 = Release|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Debug|x64.Build.0 = Debug|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Debug|x86.Build.0 = Debug|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Release|x64.ActiveCfg = Release|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Release|x64.Build.0 = Release|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Release|x86.ActiveCfg = Release|Any CPU
+		{6E9DBA12-22DE-46E8-A98D-E74E62E54BAF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
