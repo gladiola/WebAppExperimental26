@@ -1,0 +1,91 @@
+﻿@page
+@model REDRFID.Pages.Red.DataEntry.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>RedIdRecord</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.FacilityCode)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.FacilityCode)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.CardNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.CardNumber)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.ParityBits)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.ParityBits)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.LocationAddress)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.LocationAddress)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.LocationCity)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.LocationCity)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.LocationState)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.LocationState)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.LocationZip)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.LocationZip)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.LocationLat)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.LocationLat)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.LocationLong)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.LocationLong)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.RfidRisk)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.RfidRisk)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.CompanyName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.CompanyName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RedIdRecord.RFIDContent)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RedIdRecord.RFIDContent)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.RedIdRecord.Id">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>
