@@ -7,7 +7,7 @@ using REDRFID.Services;
 using System.Security;
 using System.Security.Cryptography;
 
-namespace REDRFID.Models.Main_Objects
+namespace WebAppExperimental26.Models.Main_Objects
 {
     public interface INonce
     {
@@ -54,10 +54,10 @@ namespace REDRFID.Models.Main_Objects
             string randomNumberAsString = BitConverter.ToString(randomNumber).Replace("-", "");
 
 
-            if ((!string.IsNullOrEmpty(randomNumberAsString))
-                && (randomNumber != null)
-                && (ivBytes != null)
-                && (keyBytes != null)
+            if (!string.IsNullOrEmpty(randomNumberAsString)
+                && randomNumber != null
+                && ivBytes != null
+                && keyBytes != null
                 )
             {
                 try

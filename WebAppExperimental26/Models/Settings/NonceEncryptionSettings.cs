@@ -1,4 +1,4 @@
-﻿namespace REDRFID.Models.Settings
+﻿namespace WebAppExperimental26.Models.Settings
 {
     /// <summary>
     /// Class to decsribe configuration values for encrypting a random number as nonce.

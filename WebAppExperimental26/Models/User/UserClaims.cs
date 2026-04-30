@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Razor;
 
-namespace REDRFID.Models.User
+namespace WebAppExperimental26.Models.User
 {
     public class UserClaims
     {

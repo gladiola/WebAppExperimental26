@@ -1,4 +1,4 @@
-﻿namespace REDRFID.Models.Settings
+﻿namespace WebAppExperimental26.Models.Settings
 {
     public class CosmosDbSettings
     {

@@ -1,5 +1,5 @@
 ﻿using REDRFID.Interfaces.Main_Objects;
-using REDRFID.Models.Settings;
+using WebAppExperimental26.Models.Settings;
 
 namespace REDRFID.Services
 {

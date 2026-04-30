@@ -1,4 +1,4 @@
-﻿namespace REDRFID.Models.Main_Objects
+﻿namespace WebAppExperimental26.Models.Main_Objects
 {
 
     // REF:  https://josipmisko.com/posts/string-enums-in-c-sharp-everything-you-need-to-know

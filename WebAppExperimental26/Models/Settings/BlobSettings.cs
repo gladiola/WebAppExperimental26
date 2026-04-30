@@ -1,4 +1,4 @@
-﻿namespace REDRFID.Models.Settings
+﻿namespace WebAppExperimental26.Models.Settings
 {
     /// <summary>
     /// Class that describes settings used to connect to blob storage.

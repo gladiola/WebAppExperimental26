@@ -3,10 +3,9 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Cosmos;
 using REDRFID.Services;
-using REDRFID.Models.Main_Objects;
+using WebAppExperimental26.Models.Main_Objects;
 
-
-namespace REDRFID.Models.Storage
+namespace WebAppExperimental26.Models.Storage
 {
     public class RedCosmosDBContext : DbContext
     {

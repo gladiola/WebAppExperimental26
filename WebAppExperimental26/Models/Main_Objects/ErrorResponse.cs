@@ -1,4 +1,4 @@
-﻿namespace REDRFID.Models.Main_Objects
+﻿namespace WebAppExperimental26.Models.Main_Objects
 {
     // COPIED VERBATIM FROM EXAMPLE CODE
     // CSCI E-94, Harvard Extension School

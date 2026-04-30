@@ -4,7 +4,7 @@
 // REF:  https://learn.microsoft.com/en-us/aspnet/core/mvc/models/validation?view=aspnetcore-9.0#alternatives-to-built-in-attributes
 // REF:  https://learn.microsoft.com/en-us/dotnet/api/system.string.isnullorwhitespace?view=net-9.0
 
-namespace REDRFID.Models.Main_Objects
+namespace WebAppExperimental26.Models.Main_Objects
 {
     /// <summary>
     /// Validate that a string does not hold whitespace

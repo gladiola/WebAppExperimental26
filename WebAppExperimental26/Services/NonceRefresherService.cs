@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.Cosmos.Internal;
 using Microsoft.Extensions.Logging;
 using REDRFID.AzureKeyVaultOperations;
-using REDRFID.Models.Main_Objects;
-using REDRFID.Models.Settings;
+using WebAppExperimental26.Models.Main_Objects;
+using WebAppExperimental26.Models.Settings;
 
 namespace REDRFID.Services
 {

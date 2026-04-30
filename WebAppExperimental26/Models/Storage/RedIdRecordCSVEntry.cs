@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace REDRFID.Models.Storage
+namespace WebAppExperimental26.Models.Storage
 {
 
     /*
@@ -35,22 +35,22 @@ namespace REDRFID.Models.Storage
     {
 
 
-        public string FacilityCode { get; set; } = String.Empty;
-        public string CardNumber { get; set; } = String.Empty;
+        public string FacilityCode { get; set; } = string.Empty;
+        public string CardNumber { get; set; } = string.Empty;
 
         // Should be server provided, not user
-        public string ParityBits { get; set; } = String.Empty;
-        public string LocationAddress { get; set; } = String.Empty;
-        public string LocationCity { get; set; } = String.Empty;
-        public string LocationState { get; set; } = String.Empty;
-        public string LocationZip { get; set; } = String.Empty;
-        public string LocationLat { get; set; } = String.Empty;
-        public string LocationLong { get; set; } = String.Empty;
-        public string RfidRisk { get; set;} = String.Empty;
-        public string CompanyName { get; set;} = String.Empty;
+        public string ParityBits { get; set; } = string.Empty;
+        public string LocationAddress { get; set; } = string.Empty;
+        public string LocationCity { get; set; } = string.Empty;
+        public string LocationState { get; set; } = string.Empty;
+        public string LocationZip { get; set; } = string.Empty;
+        public string LocationLat { get; set; } = string.Empty;
+        public string LocationLong { get; set; } = string.Empty;
+        public string RfidRisk { get; set;} = string.Empty;
+        public string CompanyName { get; set;} = string.Empty;
 
         // Minimum requirement
-        public string RFIDContent { get; set; } = String.Empty;
+        public string RFIDContent { get; set; } = string.Empty;
 
 
     }

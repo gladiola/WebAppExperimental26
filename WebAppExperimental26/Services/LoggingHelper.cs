@@ -1,11 +1,11 @@
 ﻿using Azure.Core;
 using Microsoft.Azure.Cosmos;
-using REDRFID.Models.Main_Objects;
-using REDRFID.Models.User;
 using System.Diagnostics;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using WebAppExperimental26.Models.Main_Objects;
+using WebAppExperimental26.Models.User;
 
 namespace REDRFID.Services
 {
@@ -42,7 +42,7 @@ namespace REDRFID.Services
                     if (claimsPrincipal.Claims != null)
                     {
                         UserClaimsLoader userClaimsLoader = new();
-                        REDRFID.Models.User.UserClaims userClaims = await userClaimsLoader.LoadDataAsync(claimsPrincipal.Claims);
+                        UserClaims userClaims = await userClaimsLoader.LoadDataAsync(claimsPrincipal.Claims);
 
                         LoggingHelper.LogUserClaims(userClaims, _logger, methodName);
                         answerIdentifiedUserFully = true;

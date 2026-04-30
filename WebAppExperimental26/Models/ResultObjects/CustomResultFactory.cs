@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Http;
 
 
-namespace REDRFID.Models.ResultObjects
+namespace WebAppExperimental26.Models.ResultObjects
 {
 
     public class CustomResultFactory
