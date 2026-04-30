@@ -1,6 +1,6 @@
 ﻿using WebAppExperimental26.Models.Settings;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
 
     public interface INonceEncryptionSettingsService {

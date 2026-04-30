@@ -1,10 +1,10 @@
-﻿using REDRFID.Interfaces.Main_Objects;
+﻿using WebAppExperimental26.Interfaces.Main_Objects;
 using WebAppExperimental26.Models.Settings;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     /// <summary>
-    /// Polymorph chain of NoteSettingsService
+    /// Service for managing Blob Storage settings
     /// </summary>
     public class BlobSettingsService : BlobSettings, IBlobSettingsService
     {
@@ -12,10 +12,10 @@ namespace REDRFID.Services
         /// Make a connection string to blob storage available to other classes.
         /// </summary>
         /// <param name="bs">BlobSettings object that holds a connection string.</param>
-        public BlobSettingsService(BlobSettings bs) {
+        public BlobSettingsService(BlobSettings bs)
+        {
             BlobConnectionString = bs.BlobConnectionString;
             MaxAttachments = bs.MaxAttachments;
         }
-
     }
 }

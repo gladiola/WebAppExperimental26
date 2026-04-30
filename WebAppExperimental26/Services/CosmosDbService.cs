@@ -1,6 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     public class CosmosDbService
     {

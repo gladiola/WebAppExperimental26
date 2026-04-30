@@ -1,4 +1,4 @@
-﻿namespace REDRFID.Services
+﻿namespace WebAppExperimental26.Services
 {
     public class LoggingMiddleware
     {

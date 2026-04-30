@@ -1,38 +1,27 @@
 ﻿using Microsoft.Azure.Cosmos;
-using Microsoft.EntityFrameworkCore;
-using REDRFID.Models.Settings;
-using System;
-using System.ComponentModel;
-using System.Configuration;
 using System.Reflection;
+using WebAppExperimental26.Models.Settings;
 using WebAppExperimental26.Models.Storage;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
-    public interface IDataServiceInitialCalls { 
-    
+    public interface IDataServiceInitialCalls
+    {
         public Task GetRedRecordsAsync(Func<string, Task> writeOutputAync);
-
         public Task GetRedRecordById(Func<string, Task> writeOutputAync, int id);
-
     }
-
 
     public class DataServiceInitialCalls : IDataServiceInitialCalls
     {
         private readonly CosmosDbService _dbService;
-
         private readonly CosmosDbSettingsService _cosmosSettingsService;
-
         private readonly ILogger<DataServiceInitialCalls> _logger;
 
-
-        public DataServiceInitialCalls(CosmosDbService cosmosDbService, CosmosDbSettingsService cosmosSettings, ILogger<DataServiceInitialCalls> logger)  { 
-            
+        public DataServiceInitialCalls(CosmosDbService cosmosDbService, CosmosDbSettingsService cosmosSettings, ILogger<DataServiceInitialCalls> logger)
+        {
             _dbService = cosmosDbService;
             _cosmosSettingsService = cosmosSettings;
             _logger = logger;
-        
         }
 
         public async Task GetRedRecordsAsync(Func<string, Task> writeOutputAync)
@@ -85,7 +74,6 @@ namespace REDRFID.Services
             )
                 .WithParameter("@Id", id);
 
-
             using FeedIterator<RedIdRecord> feed = container.GetItemQueryIterator<RedIdRecord>(
                 queryDefinition: query
             );
@@ -106,16 +94,12 @@ namespace REDRFID.Services
 
             foreach (var item in items)
             {
-
                 foreach (PropertyInfo property in item.GetType().GetProperties())
                 {
                     await writeOutputAync($"Found:\t{property.Name}\t{property.GetValue(item)??string.Empty}");
                 }
-
-                    
             }
             await writeOutputAync($"Request charge:\t{requestCharge:0.00}");
-
         }
     }
 }

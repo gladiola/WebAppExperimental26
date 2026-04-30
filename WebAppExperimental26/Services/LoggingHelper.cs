@@ -1,13 +1,12 @@
-﻿using Azure.Core;
-using Microsoft.Azure.Cosmos;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.User;
+using Microsoft.Extensions.Logging;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     /// <summary>
     /// Code to unify logging practices throughout the application.
@@ -23,7 +22,8 @@ namespace REDRFID.Services
         /// <param name="methodName">Which class.method calling the function. </param>
         /// <param name="noteRequestId">GUID distinctly identifying a request.</param>
         /// <returns>True if the user was fully identified in the claimsPrincipal for logging.</returns>
-        public static async Task<bool> LogUserActivity(ClaimsPrincipal claimsPrincipal, ILogger _logger, string methodName, string noteRequestId, string? traceId = null) {
+        public static async Task<bool> LogUserActivity(ClaimsPrincipal claimsPrincipal, ILogger _logger, string methodName, string noteRequestId, string? traceId = null)
+        {
 
             bool answerIdentifiedUserFully = false;
 
@@ -32,7 +32,8 @@ namespace REDRFID.Services
                 LoggingHelper.LogTraceIdentifier(_logger, traceId);
             }
 
-            if (claimsPrincipal.Identity != null) {
+            if (claimsPrincipal.Identity != null)
+            {
 
                 string userName = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? "Unknown User";
                 LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Success, $"Auth for {userName}");
@@ -71,26 +72,31 @@ namespace REDRFID.Services
         /// </summary>
         /// <param name="_logger">logger</param>
         /// <param name="traceId">Expecting string from Activity.Current?.Id ?? HttpContext.TraceIdentifier</param>
-        public static void LogTraceIdentifier(ILogger _logger, string traceId) {
+        public static void LogTraceIdentifier(ILogger _logger, string traceId)
+        {
             _logger.LogInformation("Trace Identifier: {0}", traceId);
         }
 
 
-        public static void LogUserClaims(UserClaims userClaims, ILogger _logger, string methodName) {
+        public static void LogUserClaims(UserClaims userClaims, ILogger _logger, string methodName)
+        {
 
             // Log who is calling
             _logger.LogInformation("{0} {1} called in Session {2} User-Oid {3} Email {4} Name {5}", DateTime.UtcNow, methodName, userClaims.Sid, userClaims.Oid, userClaims.Email, userClaims.Name);
 
             StringBuilder sb = new StringBuilder();
-            if (userClaims.Roles != null) {
+            if (userClaims.Roles != null)
+            {
                 bool firstIterationComplete = false;
-                foreach (var role in userClaims.Roles) {
+                foreach (var role in userClaims.Roles)
+                {
                     sb.Append(role);
                     if (firstIterationComplete)
                     {
                         sb.Append(", ");
                     }
-                    else {
+                    else
+                    {
                         firstIterationComplete = true;
                     }
                 }
@@ -220,7 +226,8 @@ namespace REDRFID.Services
         /// Frequently returning values like ".MoveNext" due to ASP NET CORE Kestrel patterns.
         /// </summary>
         /// <returns>Name of class.method</returns>
-        public static string IdentifyCallingClassAndMethod() {
+        public static string IdentifyCallingClassAndMethod()
+        {
 
             // Be able to name the calling class and method in logs
             StringBuilder sbCallingMethod = new StringBuilder();
@@ -319,11 +326,36 @@ namespace REDRFID.Services
         public static string LogDataProcessingStatusServiceWork(ILogger _logger, string noteRequestId, DataProcessingStatus status, string cause)
         {
 
-            _logger.LogInformation("{0} request {1} {2} due to {3}.", DateTime.UtcNow,  noteRequestId, status, cause);
+            _logger.LogInformation("{0} request {1} {2} due to {3}.", DateTime.UtcNow, noteRequestId, status, cause);
 
             return noteRequestId;
 
         }
 
+        /// <summary>
+        /// Overload without noteRequestId - logs with timestamp
+        /// </summary>
+        public static void LogDataProcessingStatusServiceWorkSimple(
+            ILogger logger,
+            string caller,
+            DataProcessingStatus status,
+            string message)
+        {
+            logger.LogInformation("{0} {1} {2} - {3}", DateTime.UtcNow, caller, status, message);
+        }
+
+        /// <summary>
+        /// Overload with context parameter - logs with timestamp and contextual information
+        /// </summary>
+        public static void LogDataProcessingStatusWithContext(
+            ILogger logger,
+            string caller,
+            string context,
+            DataProcessingStatus status,
+            string message)
+        {
+            var contextInfo = string.IsNullOrEmpty(context) ? string.Empty : $"[{context}] ";
+            logger.LogInformation("{0} {1} {2}{3} - {4}", DateTime.UtcNow, caller, contextInfo, status, message);
+        }
     }
 }

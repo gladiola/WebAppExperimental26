@@ -1,6 +1,7 @@
 ﻿using WebAppExperimental26.Models.Main_Objects;
+using WebAppExperimental26.Services;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
 
     public class NonceMiddleware

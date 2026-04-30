@@ -1,6 +1,6 @@
 ﻿using WebAppExperimental26.Models.Main_Objects;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     public interface INonceCatalogService {
 

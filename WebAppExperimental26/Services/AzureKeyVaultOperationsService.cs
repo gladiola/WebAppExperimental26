@@ -1,8 +1,8 @@
 ﻿using Azure.Security.KeyVault.Secrets;
-using REDRFID.AzureKeyVaultOperations;
+using WebAppExperimental26.AzureKeyVaultOperations;
 using System.Security.Cryptography.X509Certificates;
 
-namespace REDRFID.Services
+namespace WebAppExperimental26.Services
 {
     public interface IAzureKeyVaultOperationsService {
         public Task<KeyVaultSecret> FetchSecret();
