@@ -233,7 +233,6 @@ Both can be enabled simultaneously for defense-in-depth security.
 
 ## References
 
-- [REDRFID Program.cs](../libs/red-rfid-aclj-project01SEP2025C/REDRFID/REDRFID/Program.cs) - Original commented mTLS code
 - [Microsoft Docs: Certificate Authentication](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/certauth)
 - [Azure Key Vault Integration](https://learn.microsoft.com/en-us/azure/app-service/configure-ssl-certificate-in-code)
 

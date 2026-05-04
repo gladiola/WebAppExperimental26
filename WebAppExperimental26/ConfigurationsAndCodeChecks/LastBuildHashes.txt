@@ -8,7 +8,6 @@ C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\MIGRATION_
 C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\MTLS_GUIDE.md sha256-8w77vZ+jY+Iz8pWbGq6vFM/Qei9yWe8HMWanQX7JuTI=
 C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\Program.cs sha256-RPX4xoL0hBD9WCS1aVgjIV3+JTD1gdZcY9CLz2YnAn0=
 C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\QUICK_REFERENCE.md sha256-u9WpgHTNaGwIGVa9+qHNmtz4R9bEUuQQFu2YYcpwBbk=
-C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\REDRFID_REFERENCES_AUDIT.md sha256-uHy+gPdy40uCx8MdE35st5QigGX8ZhquNc2O0eK4Mzw=
 C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\TEMPLATE_CONVERSION_SUMMARY.md sha256-uT7SoKbdTYoSqQiNUtRH6id+w749e+UhZWaP+4LMMSA=
 C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\TEMPLATE_README.md sha256-aO5JIXQd9zTwDglMhMMke5qNyejAkaCCLamH11a6Ye8=
 C:\Users\gladi\source\repos\WebAppExperimental26\WebAppExperimental26\WebAppExperimental26.csproj sha256-zYsb9L55W7MoEaasNi/9P4ohDfatr2nTozq1gIlq+WY=

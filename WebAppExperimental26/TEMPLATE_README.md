@@ -351,7 +351,7 @@ Calculate hashes:
 
 ### Rename Namespace
 
-Current namespace: `REDRFID`
+Current namespace: `WebAppExperimental26`
 
 To customize (e.g., `YourCompany.YourApp`):
 
