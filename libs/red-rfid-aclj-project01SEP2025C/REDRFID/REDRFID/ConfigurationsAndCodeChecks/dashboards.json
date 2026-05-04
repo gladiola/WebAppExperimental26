@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "dashboards_f4868323_62c9_48a8_8a2b_3b0a60f2d182_name": {
+      "type": "String"
+    },
+    "vaults_RED_RFID_CapstoneA_externalid": {
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Portal/dashboards",
+      "apiVersion": "2025-04-01-preview",
+      "name": "[parameters('dashboards_f4868323_62c9_48a8_8a2b_3b0a60f2d182_name')]",
+      "location": "eastus",
+      "tags": {
+        "hidden-title": "Dashboard Capstone"
+      },
+      "properties": {
+        "lenses": [
+          {
+            "order": 0,
+            "parts": [
+              {
+                "position": {
+                  "x": 0,
+                  "y": 0,
+                  "rowSpan": 1,
+                  "colSpan": 2
+                },
+                "metadata": {
+                  "inputs": [
+                    {
+                      "name": "id",
+                      "value": "[parameters('vaults_RED_RFID_CapstoneA_externalid')]"
+                    }
+                  ],
+                  "type": "Extension/Microsoft_Azure_KeyVault/PartType/VaultPart"
+                }
+              }
+            ]
+          }
+        ],
+        "metadata": {
+          "model": {}
+        }
+      }
+    }
+  ]
+}
