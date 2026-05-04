@@ -125,7 +125,7 @@ dotnet build
 dotnet run
 ```
 
-### For Existing REDRFID Customization
+### For New Project Setup
 
 ```powershell
 # 1. Review appsettings.template.json
@@ -137,7 +137,7 @@ dotnet user-secrets set "Key:Path" "value"
 
 ## What Makes This a Template
 
-### 1. No REDRFID-Specific Values
+### 1. No Project-Specific Values
 - All tenant IDs, client IDs, connection strings are placeholders
 - No hardcoded resource names
 - Generic namespace (can be renamed)
@@ -220,7 +220,6 @@ dotnet user-secrets set "Key:Path" "value"
 
 1. **Program.cs**: Contains duplicate code (old region needs removal)
 2. **Build errors**: Project needs clean build after Program.cs fix
-3. **Submodule reference**: REDRFID submodule path in .csproj may need adjustment
 
 ## Conclusion
 
@@ -230,7 +229,7 @@ The project is now a **true template** suitable for:
 - Demonstrating Azure integration
 - Enterprise development standards
 
-All REDRFID-specific values have been replaced with clear placeholders, comprehensive documentation has been added, and automation scripts make initial setup quick and error-free.
+All project-specific values have been replaced with clear placeholders, comprehensive documentation has been added, and automation scripts make initial setup quick and error-free.
 
 ---
 

@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Rename the REDRFID namespace throughout the project
+    Rename the WebAppExperimental26 namespace throughout the project
     
 .DESCRIPTION
     This script performs a find-and-replace operation across all C# files
-    to change the namespace from REDRFID to your custom namespace.
+    to change the namespace from WebAppExperimental26 to your custom namespace.
     
 .PARAMETER NewNamespace
     The new namespace to use (e.g., "MyCompany.MyApp")
@@ -35,7 +35,7 @@ Write-Host "?????????????????????????????????????????????????????????????" -Fore
 Write-Host ""
 
 Write-Host "Current namespace: " -NoNewline
-Write-Host "REDRFID" -ForegroundColor Yellow
+Write-Host "WebAppExperimental26" -ForegroundColor Yellow
 
 Write-Host "New namespace:     " -NoNewline
 Write-Host $NewNamespace -ForegroundColor Green
@@ -71,13 +71,13 @@ foreach ($file in $csFiles) {
     $modified = $false
     
     # Check for namespace declarations
-    if ($content -match "namespace\s+REDRFID") {
+    if ($content -match "namespace\s+WebAppExperimental26") {
         $patternsFound['namespace']++
         $modified = $true
     }
     
     # Check for using directives
-    if ($content -match "using\s+REDRFID") {
+    if ($content -match "using\s+WebAppExperimental26") {
         $patternsFound['using']++
         $modified = $true
     }
@@ -91,8 +91,8 @@ foreach ($file in $csFiles) {
             Write-Host "  [UPDATING] $relativePath" -ForegroundColor Green
             
             # Perform replacements
-            $newContent = $content -replace "namespace\s+REDRFID", "namespace $NewNamespace"
-            $newContent = $newContent -replace "using\s+REDRFID", "using $NewNamespace"
+            $newContent = $content -replace "namespace\s+WebAppExperimental26", "namespace $NewNamespace"
+            $newContent = $newContent -replace "using\s+WebAppExperimental26", "using $NewNamespace"
             
             # Save with original encoding
             $newContent | Set-Content $file.FullName -NoNewline
