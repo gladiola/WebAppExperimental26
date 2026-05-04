@@ -155,7 +155,6 @@ Project(s)
 ----------
 WebAppExperimental26\WebAppExperimental26.csproj
 WebAppExperimental26.Tests\WebAppExperimental26.Tests.csproj
-libs\red-rfid-aclj-project01SEP2025C\REDRFID\REDRFID\REDRFID.csproj
 ```
 
 ---

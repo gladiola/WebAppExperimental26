@@ -11,7 +11,6 @@ using System.Security.Cryptography.X509Certificates;
 using WebAppExperimental26.Models.Settings;
 using WebAppExperimental26.Services;
 using WebAppExperimental26.AzureKeyVaultOperations;
-using WebAppExperimental26.Models.Storage;
 using WebAppExperimental26.Interfaces.Main_Objects;
 
 namespace WebAppExperimental26.Extensions
@@ -419,11 +418,6 @@ namespace WebAppExperimental26.Extensions
                     var dbClient = provider.GetRequiredService<CosmosClient>();
                     return new CosmosDbService(dbClient, cosmosSettings.DatabaseName);
                 });
-
-                services.AddDbContext<RedCosmosDBContext>((sp, options) => options.UseCosmos(
-                    cosmosSettings.AccountEndpoint,
-                    cosmosSettings.AccountKey,
-                    cosmosSettings.DatabaseName));
 
                 logger.LogInformation("Cosmos DB services configured");
             }
