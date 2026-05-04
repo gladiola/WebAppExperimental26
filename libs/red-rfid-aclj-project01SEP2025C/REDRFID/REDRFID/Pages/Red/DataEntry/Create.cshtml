@@ -1,0 +1,83 @@
+﻿@page
+@model REDRFID.Pages.Red.DataEntry.CreateModel
+
+
+<h1>Create</h1>
+
+<h4>RedIdRecord</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.FacilityCode" class="control-label"></label>
+                <input asp-for="RedIdRecord.FacilityCode" class="form-control" />
+                <span asp-validation-for="RedIdRecord.FacilityCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.CardNumber" class="control-label"></label>
+                <input asp-for="RedIdRecord.CardNumber" class="form-control" />
+                <span asp-validation-for="RedIdRecord.CardNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.ParityBits" class="control-label"></label>
+                <input asp-for="RedIdRecord.ParityBits" class="form-control" />
+                <span asp-validation-for="RedIdRecord.ParityBits" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.LocationAddress" class="control-label"></label>
+                <input asp-for="RedIdRecord.LocationAddress" class="form-control" />
+                <span asp-validation-for="RedIdRecord.LocationAddress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.LocationCity" class="control-label"></label>
+                <input asp-for="RedIdRecord.LocationCity" class="form-control" />
+                <span asp-validation-for="RedIdRecord.LocationCity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.LocationState" class="control-label"></label>
+                <input asp-for="RedIdRecord.LocationState" class="form-control" />
+                <span asp-validation-for="RedIdRecord.LocationState" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.LocationZip" class="control-label"></label>
+                <input asp-for="RedIdRecord.LocationZip" class="form-control" />
+                <span asp-validation-for="RedIdRecord.LocationZip" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.LocationLat" class="control-label"></label>
+                <input asp-for="RedIdRecord.LocationLat" class="form-control" />
+                <span asp-validation-for="RedIdRecord.LocationLat" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.LocationLong" class="control-label"></label>
+                <input asp-for="RedIdRecord.LocationLong" class="form-control" />
+                <span asp-validation-for="RedIdRecord.LocationLong" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.RfidRisk" class="control-label"></label>
+                <input asp-for="RedIdRecord.RfidRisk" class="form-control" />
+                <span asp-validation-for="RedIdRecord.RfidRisk" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.CompanyName" class="control-label"></label>
+                <input asp-for="RedIdRecord.CompanyName" class="form-control" />
+                <span asp-validation-for="RedIdRecord.CompanyName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RedIdRecord.RFIDContent" class="control-label"></label>
+                <input asp-for="RedIdRecord.RFIDContent" class="form-control" />
+                <span asp-validation-for="RedIdRecord.RFIDContent" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>

@@ -1,0 +1,71 @@
+﻿@page
+@model REDRFID.Pages.AboutModel
+@{
+
+
+}
+
+
+<div class=”about-body”>
+    <h2>About RED</h2>
+
+    <p>RED addresses a long-standing gap in security by documenting systemic Radio Frequency Identification (RFID) weaknesses. RED will provide the first-ever global RFID risk visibility platform through community participation, dark web data, and deep web data. Our public database will consolidate and catalog these vulnerabilities to promote awareness and adoption of more secure standards which will lead to a safer world and secure tomorrow.</p>
+
+    <p>This project was created out of a graduate school cybersecurity capstone project that sought to address a ubiquitous security problem concerning technology that many businesses and institutions rely on while not having a reasonable understanding of the security flaws that RFID credentials can introduce.</p>
+</div>
+
+<div class=”faq-body”>
+    <h2>FAQ</h2>
+
+    <h3>How do I use the RFID Risk Registry?</h3>
+
+    (tbd)
+
+    <h3>What is RED trying to do?</h3>
+
+    <p>Insecure RFID protocols currently persist in many environments. However, many do not realize they are using outdated security standards and protocols. Therefore, critical infrastructure gets exposed in almost every industry, leaving people and assets at risk. Currently, there is no one-stop solution for identifying and visualizing these risks worldwide.</p>
+
+    <p>Our public database will consolidate and catalog these vulnerabilities to promote awareness and adoption of more secure standards which will lead to a safer world and secure tomorrow.</p>
+
+
+    <h3>How does RED get its credential data?</h3>
+
+    <p>We rely on crowdsourced data from security researchers, ethical hackers, students, etc. using tools such as a Proxmark3 RVD4, Flipper Zero, ESPKey. They will then upload the RFID data, which includes metadata (as seen in public / private DB schema) location data and bit format length. We plan for all data submissions to be subject to moderation and community validation to ensure accuracy and consistency (input validation). If an uploader’s reputation gets down voted enough times, their upload privileges will be revoked.</p>
+
+    <p>Each session and call to the API will be tagged with a Universally Unique Identifier (UUID) or similar distinctive identifying number. This will allow us to group and observe user behavior in logs with other points of coordination. Our application will also record some critical data related to telemetry that will be identified in our data design. We will send data relevant to server operation to logs; we will send data relevant to the application’s logic to data stores. </p>
+
+    <h3>How can I use RED?</h3>
+    <ul>
+    <li>Individuals: Private individuals can use RED to look up buildings or businesses they may have an interest in when looking at buildings where they may rent or utilize other services. </li>
+    <li>Security Professionals: Keep apprised of any compromised credential or leak of credentials that affect your employer or clients.</li>
+    <li>Commercial and Government: Periodically check if a building managed or leased by your entity has compromised credentials. </li>
+    </ul>
+
+    <h3>How trustworthy is the data hosted on RED?</h3>
+    <p>All credential uploads will be subject to input validation to ensure accuracy and consistency across all users. The bit format of the credentials will be validated against the standard for the user submitted RFID format, and will not be accepted if this validation fails.</p>
+
+    <p>Data submitted will be subject to moderation and community reputation voting. Users with a sufficiently low reputation will have their upload privileges revoked.
+
+
+    <h3>What data does RED log?</h3>
+    <p>Website session and API call activity will be tagged with a Universally Unique Identifier
+
+    <h3>Why care about RFID?</h3>
+
+    <p>Many companies and organizations rely on RFID credentials as part of their access control solutions. Per <a href=”https://securitime.com/how-much-does-a-security-breach-cost/”>securitime.com</a>:</p>
+
+    <blockquote cite=”https://securitime.com/how-much-does-a-security-breach-cost/”>
+        “The total cost of a physical security incident can range from a few thousand dollars to millions of dollars, depending on the severity and scope of the incident.”
+    </blockquote>
+    The costs associated with a breach including:
+    <ul>
+        <li>Loss of assets</li>
+        <li>Property damage</li>
+        <li>Legal fees</li>
+        <li>Investigation costs</li>
+        <li>Business Interruption</li>
+        <li>Reputation damage</li>
+        <li>Personnel turnover</li>
+    </ul>
+
+    <p>Every single industry or company that uses RFID credentials could face negative consequences if any single or multiple of the seven bullets above were to occur. They can benefit from RED, by using our database to promptly revoke any compromised RFID credential that is identified on RED.</p>

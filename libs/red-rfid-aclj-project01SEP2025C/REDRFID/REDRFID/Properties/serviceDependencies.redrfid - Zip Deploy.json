@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "secrets1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.Web/sites/redrfid/providers/Microsoft.ServiceLinker/linkers/VaultUri_EE7CD3EA43",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.KeyVault/vaults/RED-RFID-CapstoneC",
+      "type": "secrets.keyVault",
+      "connectionId": "VaultUri",
+      "dynamicId": null
+    },
+    "secrets2": {
+      "ignored": "true",
+      "type": "secrets",
+      "connectionId": "VaultUri1",
+      "dynamicId": null
+    },
+    "identityapp1": {
+      "connectionInfo": "App registration: REDRFID-DefaultDirectory, Tenant: Default Directory (redrfidacljprotonmail.onmicrosoft.com - Microsoft Entra ID)",
+      "secretStore": null,
+      "resourceId": null,
+      "type": "identityapp.default"
+    }
+  }
+}
