@@ -24,7 +24,7 @@ namespace WebAppExperimental26.Models.Storage
     "LocationLong": "2.17403",
     "UploadedUser": "azaso",
     "UserID": "AndrewZaso",
-    "RfidRisk": "Medium",
+
     "CompanyName": "IBM",
     "IdString":"asdfasdfasdf",
     "_partitionKey" : "85F05E2D1492C89F3EC1052A"
@@ -46,11 +46,7 @@ namespace WebAppExperimental26.Models.Storage
         public string LocationZip { get; set; } = string.Empty;
         public string LocationLat { get; set; } = string.Empty;
         public string LocationLong { get; set; } = string.Empty;
-        public string RfidRisk { get; set;} = string.Empty;
         public string CompanyName { get; set;} = string.Empty;
-
-        // Minimum requirement
-        public string RFIDContent { get; set; } = string.Empty;
 
 
     }

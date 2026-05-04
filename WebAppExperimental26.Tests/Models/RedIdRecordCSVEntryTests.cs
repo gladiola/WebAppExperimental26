@@ -17,7 +17,6 @@ namespace WebAppExperimental26.Tests.Models
                 LocationCity = "Test City",
                 LocationState = "TS",
                 LocationZip = "12345",
-                RFIDContent = "test-rfid"
             };
 
             // Assert
