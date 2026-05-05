@@ -1,5 +1,4 @@
-﻿using Azure.Security.KeyVault.Secrets;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using WebAppExperimental26.Services;
 using System.Security.Cryptography;
 
@@ -10,81 +9,55 @@ namespace WebAppExperimental26.Models.Main_Objects
         string GetNonceAsString();
     }
 
+    /// <summary>
+    /// Generates a cryptographically secure, unpredictable nonce for use as a CSP nonce.
+    ///
+    /// SECURITY NOTE — Why AES-GCM was removed:
+    /// The previous implementation encrypted a random number using AES-GCM with a fixed IV that
+    /// was retrieved from Key Vault on every call.  Reusing the same IV with the same key under
+    /// AES-GCM is catastrophic: an attacker who observes two ciphertexts can XOR them to recover
+    /// the XOR of the plaintexts, and the authentication tag can be forged.  More importantly,
+    /// encrypting a nonce added no security benefit — a CSP nonce only needs to be unpredictable
+    /// and unique per request.  <see cref="RandomNumberGenerator.GetBytes(int)"/> provides exactly
+    /// that guarantee without any risk of IV reuse.
+    ///
+    /// HOW TO KEEP THIS FIX IN PLACE:
+    /// 1. Never replace <see cref="GenerateSecureNonce"/> with an approach that reuses an IV.
+    /// 2. Do not introduce a Key Vault IV/key pair for nonce generation — encryption is not needed.
+    /// 3. The nonce byte length is 16 (128 bits), which yields a sufficiently large nonce space.
+    ///    Do not reduce this length.
+    /// 4. The nonce is Base64-encoded for inclusion in HTTP headers and HTML attributes.
+    /// </summary>
     public class Nonce : INonce
     {
         private readonly string _nonce;
         private readonly ILogger<Nonce> _logger;
 
         /// <summary>
-        /// Utility class to encrypt a random number with a key stored in KeyVault.
+        /// Generates a fresh cryptographically random nonce.
         /// </summary>
-        public Nonce(ILogger<Nonce> logger, KeyVaultSecret iv, KeyVaultSecret key)
+        public Nonce(ILogger<Nonce> logger)
         {
             _logger = logger;
-            _nonce = GenerateEncryptedNonce(iv, key);
+            _nonce = GenerateSecureNonce();
         }
 
         /// <summary>
-        /// Use an IV and a Key from KeyVault to encrypt a random number.
+        /// Generates a 16-byte cryptographically random nonce encoded as Base64.
+        /// No encryption, no Key Vault dependency — randomness is the only security property needed.
         /// </summary>
-        /// <param name="iv">From KeyVault</param>
-        /// <param name="key">From KeyVault</param>
-        /// <returns>A hex string of an encrypted random number</returns>
-        public string GenerateEncryptedNonce(KeyVaultSecret iv, KeyVaultSecret key)
+        /// <returns>A Base64-encoded 16-byte random nonce string.</returns>
+        public static string GenerateSecureNonce()
         {
-            string answer = string.Empty;
-            string caller = "Nonce.GenerateEncryptedNonce()";
-
-            byte[] ivBytes = Convert.FromHexString(iv.Value);
-            byte[] keyBytes = Convert.FromHexString(key.Value);
-            byte[] randomNumber = new byte[16];
-            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-            }
-            string randomNumberAsString = BitConverter.ToString(randomNumber).Replace("-", "");
-
-            if (!string.IsNullOrEmpty(randomNumberAsString)
-                && randomNumber != null
-                && ivBytes != null
-                && keyBytes != null)
-            {
-                try
-                {
-                    using AesGcm aesGcm = new AesGcm(keyBytes, 16);
-                    byte[] ciphertext = new byte[randomNumber.Length];
-                    byte[] tag = new byte[16];
-                    aesGcm.Encrypt(ivBytes, randomNumber, ciphertext, tag);
-                    byte[] result = new byte[ciphertext.Length + tag.Length];
-                    Array.Copy(ciphertext, 0, result, 0, ciphertext.Length);
-                    Array.Copy(tag, 0, result, ciphertext.Length, tag.Length);
-                    answer = Convert.ToBase64String(result);
-                }
-                catch (ArgumentNullException ex)
-                {
-                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, $"Nonce generation exception {ex.Message}");
-                }
-                catch (ArgumentException ex)
-                {
-                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, $"Nonce generation exception {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, $"Nonce generation exception {ex.Message}");
-                }
-            }
-            else
-            {
-                LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Failure, $"Nonce missing starting components.");
-            }
-
-            return answer;
+            byte[] randomBytes = new byte[16];
+            RandomNumberGenerator.Fill(randomBytes);
+            return Convert.ToBase64String(randomBytes);
         }
 
         /// <summary>
-        /// Accessor for nonce value
+        /// Accessor for nonce value.
         /// </summary>
-        /// <returns>String with nonce in characters.</returns>
+        /// <returns>Base64-encoded nonce string.</returns>
         public string GetNonceAsString()
         {
             return _nonce;

@@ -51,14 +51,15 @@ namespace WebAppExperimental26.Services
         /// <returns>string representation of the nonce value</returns>
         public string GetANonce(string whichOne)
         {
-            string answer = String.Empty;
-
-            if (_nonceCollection.TryGetValue(whichOne, out _)) {
-                Nonce nonce = _nonceCollection[whichOne];
-                answer = nonce.GetNonceAsString();
+            // Use TryGetValue with the out parameter to atomically retrieve the value.
+            // A two-step check-then-lookup is not thread-safe even with ConcurrentDictionary
+            // because another thread may remove the key between the check and the lookup.
+            if (_nonceCollection.TryGetValue(whichOne, out var nonce))
+            {
+                return nonce.GetNonceAsString();
             }
-                 
-            return answer;
+
+            return string.Empty;
         }
 
         /// <summary>

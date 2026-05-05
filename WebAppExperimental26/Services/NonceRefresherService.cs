@@ -40,37 +40,10 @@ namespace WebAppExperimental26.Services
 
             try
             {
-                
-
-                AzureADSettings aads = _azureADSettingsService.GetSettings();
-
-                // breaks right here.
-
-                if (aads.ClientCredentials == null || !aads.ClientCredentials.Any())
-                {
-                    throw new InvalidOperationException("ClientCredentials collection is empty or null");
-                }
-                else {
-
-                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Success, $"Sample from client secret:  {aads.ClientCredentials.ToString()}");
-                }
-
-                    var clientSecretElement = aads.ClientCredentials.FirstOrDefault(cc => cc.SourceType == "ApplicationSecret");
-
-                string clientSecretValue = clientSecretElement?.ClientSecret! ?? string.Empty;
-
-                NonceEncryptionSettings nes = _nonceEncryptionSettingsService.GetSettings();
-
-                // We have a problem here.  
-                // The values for IV and EncKey results are not as expected.
-                // When they are applied in Nonce creation, this will throw an exception.
-
-                var fetchIV = await _azureKeyVaultOperationsService.FetchSecretIVSecret();
-
-                var fetchEncKey = await _azureKeyVaultOperationsService.FetchSecretNonceKeySecret();
-
+                // Generate a fresh cryptographically random nonce using RandomNumberGenerator.
+                // No Key Vault IV/key fetch is required — see Nonce.cs for the security rationale.
                 var nonceLogger = _loggerFactory.CreateLogger<Nonce>();
-                Nonce nonce = new(nonceLogger, fetchIV, fetchEncKey);
+                Nonce nonce = new(nonceLogger);
                 CSPNonce = nonce.GetNonceAsString();
 
                 if (string.IsNullOrEmpty(CSPNonce))
@@ -79,19 +52,18 @@ namespace WebAppExperimental26.Services
                 }
                 else
                 {
-                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Success, $"Generated Nonce: {CSPNonce}");
+                    // Log only success status — never log the nonce value (see Critical #2).
+                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Success, "Nonce generated successfully.");
                 }
-                
-                _nonceCatalogService.AddANonce("CSPNonce", nonce);
-                
 
+                _nonceCatalogService.AddANonce("CSPNonce", nonce);
+
+                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Exception, ex.Message);
-
             }
-
 
             return CSPNonce;
         }
