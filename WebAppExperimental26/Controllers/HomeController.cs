@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebAppExperimental26.Models;
+using WebAppExperimental26.Services;
 
 namespace WebAppExperimental26.Controllers
 {
@@ -17,11 +18,13 @@ namespace WebAppExperimental26.Controllers
 
         public IActionResult Index()
         {
+            LoggingHelper.TrackFunctionCall(HttpContext, "HomeController.Index");
             return View();
         }
 
         public IActionResult Privacy()
         {
+            LoggingHelper.TrackFunctionCall(HttpContext, "HomeController.Privacy");
             return View();
         }
 
@@ -29,6 +32,7 @@ namespace WebAppExperimental26.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
+            LoggingHelper.TrackFunctionCall(HttpContext, "HomeController.Error");
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
