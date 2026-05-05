@@ -96,7 +96,7 @@ With mTLS enabled, any client certificate from any issuer (that chains to a trus
 
 ---
 
-### 6. mTLS Certificate Revocation Checking Disabled by Default ✅ Fixed in commit 
+### 6. mTLS Certificate Revocation Checking Disabled by Default ✅ Fixed in commit fd3d7b3
 
 **Files:** `Models/Settings/MtlsSettings.cs` (line 26), `appsettings.template.json`
 
@@ -104,7 +104,7 @@ With mTLS enabled, any client certificate from any issuer (that chains to a trus
 
 ---
 
-### 7. OCSP Validation is a Stub That Always Returns Valid
+### 7. OCSP Validation is a Stub That Always Returns Valid ✅ Fixed in commit 
 
 **File:** `Services/OcspValidationService.cs` (lines 149–163)
 
