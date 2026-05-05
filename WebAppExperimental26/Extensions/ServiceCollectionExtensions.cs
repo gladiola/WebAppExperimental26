@@ -43,6 +43,8 @@ namespace WebAppExperimental26.Extensions
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
             logger.LogInformation("Session configured with 30-minute timeout");
