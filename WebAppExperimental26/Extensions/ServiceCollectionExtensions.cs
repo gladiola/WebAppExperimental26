@@ -34,20 +34,22 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("Session is DISABLED");
-                return services;
+            }
+            else
+            {
+                services.AddDistributedMemoryCache();
+                services.AddSession(options =>
+                {
+                    options.IdleTimeout = TimeSpan.FromMinutes(30);
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.IsEssential = true;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
+                });
+
+                logger.LogInformation("Session configured with 30-minute timeout");
             }
 
-            services.AddDistributedMemoryCache();
-            services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.Cookie.SameSite = SameSiteMode.Strict;
-            });
-
-            logger.LogInformation("Session configured with 30-minute timeout");
             return services;
         }
 
@@ -59,18 +61,20 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("Localization is DISABLED");
-                return services;
+            }
+            else
+            {
+                services.Configure<RequestLocalizationOptions>(options =>
+                {
+                    var supportedCulture = new[] { new CultureInfo("en-US") };
+                    options.DefaultRequestCulture = new RequestCulture("en-US");
+                    options.SupportedCultures = supportedCulture;
+                    options.SupportedUICultures = supportedCulture;
+                });
+
+                logger.LogInformation("Localization configured for en-US only");
             }
 
-            services.Configure<RequestLocalizationOptions>(options =>
-            {
-                var supportedCulture = new[] { new CultureInfo("en-US") };
-                options.DefaultRequestCulture = new RequestCulture("en-US");
-                options.SupportedCultures = supportedCulture;
-                options.SupportedUICultures = supportedCulture;
-            });
-
-            logger.LogInformation("Localization configured for en-US only");
             return services;
         }
 
@@ -86,30 +90,31 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("Azure AD Authentication is DISABLED");
-                return services;
             }
-
-            var adSettings = configuration.GetSection("AzureAD").Get<AzureADSettings>()
-                ?? throw new InvalidOperationException("AzureADSettings not found");
-
-            logger.LogInformation("Configuring Azure AD with ClientId: {ClientId}", adSettings.ClientId);
-
-            services.AddSingleton<IAzureADSettingsService>(new AzureADSettingsService(adSettings));
-
-            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"));
-
-            services.ConfigureApplicationCookie(options =>
+            else
             {
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    logger.LogError("Redirect to login for path: {Path}", context.Request.Path);
-                    return Task.CompletedTask;
-                };
-            });
+                var adSettings = configuration.GetSection("AzureAD").Get<AzureADSettings>()
+                    ?? throw new InvalidOperationException("AzureADSettings not found");
 
-            services.AddAuthorization();
+                logger.LogInformation("Configuring Azure AD with ClientId: {ClientId}", adSettings.ClientId);
+
+                services.AddSingleton<IAzureADSettingsService>(new AzureADSettingsService(adSettings));
+
+                services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"));
+
+                services.ConfigureApplicationCookie(options =>
+                {
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        logger.LogError("Redirect to login for path: {Path}", context.Request.Path);
+                        return Task.CompletedTask;
+                    };
+                });
+
+                services.AddAuthorization();
+            }
 
             return services;
         }
@@ -162,81 +167,82 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 loggerFactory.CreateLogger("KeyVault").LogWarning("Key Vault integration is DISABLED");
-                return services;
             }
-
-            var logger = loggerFactory.CreateLogger("KeyVault");
-
-            try
+            else
             {
-                var kvSettings = configuration.GetSection("AzureKeyVault").Get<KeyVaultSettings>()
-                    ?? throw new InvalidOperationException("KeyVaultSettings not found");
+                var logger = loggerFactory.CreateLogger("KeyVault");
 
-                var adSettings = configuration.GetSection("AzureAD").Get<AzureADSettings>()
-                    ?? throw new InvalidOperationException("AzureADSettings not found for Key Vault");
-
-                services.AddSingleton<IKeyVaultSettingsService>(new KeyVaultSettingsService(kvSettings));
-                services.AddSingleton<IAzureKeyVaultCertificateOperations, AzureKeyVaultCertificateOperations>();
-                services.AddSingleton<IAzureKeyVaultOperationsService, AzureKeyVaultOperationsService>();
-
-                // Retrieve certificate
-                var akvo = new AzureKeyVaultCertificateOperations(loggerFactory.CreateLogger<AzureKeyVaultCertificateOperations>());
-                
-                var clientSecret = adSettings.ClientCredentials.FirstOrDefault(cc => cc.SourceType == "ClientSecret")?.ClientSecret ?? string.Empty;
-                
-                var serverCert = await akvo.GetCertificateFromKeyVault(
-                    adSettings.TenantId,
-                    adSettings.ClientId,
-                    kvSettings.KeyVaultURL,
-                    kvSettings.KeyVaultSecret,
-                    kvSettings.KeyVaultPassName);
-
-                if (serverCert == null)
+                try
                 {
-                    throw new InvalidOperationException("Server certificate not retrieved from Key Vault");
-                }
+                    var kvSettings = configuration.GetSection("AzureKeyVault").Get<KeyVaultSettings>()
+                        ?? throw new InvalidOperationException("KeyVaultSettings not found");
 
-                logger.LogInformation("Server certificate retrieved from Key Vault");
+                    var adSettings = configuration.GetSection("AzureAD").Get<AzureADSettings>()
+                        ?? throw new InvalidOperationException("AzureADSettings not found for Key Vault");
 
-                // Get mTLS settings if available
-                var mtlsSettings = configuration.GetSection("MtlsSettings").Get<MtlsSettings>();
-                var enableMtls = mtlsSettings?.RequireClientCertificate ?? false;
+                    services.AddSingleton<IKeyVaultSettingsService>(new KeyVaultSettingsService(kvSettings));
+                    services.AddSingleton<IAzureKeyVaultCertificateOperations, AzureKeyVaultCertificateOperations>();
+                    services.AddSingleton<IAzureKeyVaultOperationsService, AzureKeyVaultOperationsService>();
 
-                // Configure Kestrel
-                builder.WebHost.ConfigureKestrel(serverOptions =>
-                {
-                    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+                    // Retrieve certificate
+                    var akvo = new AzureKeyVaultCertificateOperations(loggerFactory.CreateLogger<AzureKeyVaultCertificateOperations>());
+                    
+                    var clientSecret = adSettings.ClientCredentials.FirstOrDefault(cc => cc.SourceType == "ClientSecret")?.ClientSecret ?? string.Empty;
+                    
+                    var serverCert = await akvo.GetCertificateFromKeyVault(
+                        adSettings.TenantId,
+                        adSettings.ClientId,
+                        kvSettings.KeyVaultURL,
+                        kvSettings.KeyVaultSecret,
+                        kvSettings.KeyVaultPassName);
+
+                    if (serverCert == null)
                     {
-                        if (!environment.IsDevelopment())
+                        throw new InvalidOperationException("Server certificate not retrieved from Key Vault");
+                    }
+
+                    logger.LogInformation("Server certificate retrieved from Key Vault");
+
+                    // Get mTLS settings if available
+                    var mtlsSettings = configuration.GetSection("MtlsSettings").Get<MtlsSettings>();
+                    var enableMtls = mtlsSettings?.RequireClientCertificate ?? false;
+
+                    // Configure Kestrel
+                    builder.WebHost.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.ConfigureHttpsDefaults(httpsOptions =>
                         {
-                            httpsOptions.ServerCertificate = serverCert;
-                            
-                            // Configure client certificate mode for mTLS
-                            if (enableMtls)
+                            if (!environment.IsDevelopment())
                             {
-                                httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
-                                logger.LogInformation("mTLS enabled - Client certificates REQUIRED");
+                                httpsOptions.ServerCertificate = serverCert;
+                                
+                                // Configure client certificate mode for mTLS
+                                if (enableMtls)
+                                {
+                                    httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+                                    logger.LogInformation("mTLS enabled - Client certificates REQUIRED");
+                                }
+                                else
+                                {
+                                    httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
+                                    logger.LogInformation("mTLS disabled - Client certificates optional");
+                                }
                             }
                             else
                             {
+                                // In development, make client certificates optional
+                                httpsOptions.ServerCertificate = serverCert;
                                 httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
-                                logger.LogInformation("mTLS disabled - Client certificates optional");
+                                logger.LogInformation("Development mode - Client certificates optional");
                             }
-                        }
-                        else
-                        {
-                            // In development, make client certificates optional
-                            httpsOptions.ServerCertificate = serverCert;
-                            httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
-                            logger.LogInformation("Development mode - Client certificates optional");
-                        }
+                        });
                     });
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Key Vault configuration failed");
-                throw;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Key Vault configuration failed");
+                    throw;
+                }
             }
 
             return services;
@@ -254,86 +260,88 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("mTLS Client Certificate Authentication is DISABLED");
-                return services;
-            }
-
-            var mtlsSettings = configuration.GetSection("MtlsSettings").Get<MtlsSettings>()
-                ?? throw new InvalidOperationException("MtlsSettings not found");
-
-            logger.LogInformation("Configuring mTLS certificate authentication");
-
-            // Evaluate and log the configuration eagerly so that tests and operators can
-            // see what is configured at startup time (not deferred inside AddCertificate).
-            if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
-            {
-                logger.LogWarning("mTLS: Allowing both chained AND self-signed certificates");
-            }
-            else if (mtlsSettings.AllowSelfSignedCertificates)
-            {
-                logger.LogWarning("mTLS: Allowing self-signed certificates only");
             }
             else
             {
-                logger.LogInformation("mTLS: Allowing chained certificates only (recommended)");
+                var mtlsSettings = configuration.GetSection("MtlsSettings").Get<MtlsSettings>()
+                    ?? throw new InvalidOperationException("MtlsSettings not found");
+
+                logger.LogInformation("Configuring mTLS certificate authentication");
+
+                // Evaluate and log the configuration eagerly so that tests and operators can
+                // see what is configured at startup time (not deferred inside AddCertificate).
+                if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
+                {
+                    logger.LogWarning("mTLS: Allowing both chained AND self-signed certificates");
+                }
+                else if (mtlsSettings.AllowSelfSignedCertificates)
+                {
+                    logger.LogWarning("mTLS: Allowing self-signed certificates only");
+                }
+                else
+                {
+                    logger.LogInformation("mTLS: Allowing chained certificates only (recommended)");
+                }
+
+                logger.LogInformation("mTLS: Certificate revocation check = {RevocationCheck}",
+                    mtlsSettings.CheckCertificateRevocation ? "ENABLED" : "DISABLED");
+
+                services.AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
+                    .AddCertificate(options =>
+                    {
+                        // Configure certificate types
+                        if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
+                        {
+                            options.AllowedCertificateTypes = CertificateTypes.All;
+                        }
+                        else if (mtlsSettings.AllowSelfSignedCertificates)
+                        {
+                            options.AllowedCertificateTypes = CertificateTypes.SelfSigned;
+                        }
+                        else
+                        {
+                            options.AllowedCertificateTypes = CertificateTypes.Chained;
+                        }
+
+                        // Configure revocation mode
+                        options.RevocationMode = mtlsSettings.CheckCertificateRevocation 
+                            ? X509RevocationMode.Online 
+                            : X509RevocationMode.NoCheck;
+
+                        // Configure authentication events
+                        options.Events = new CertificateAuthenticationEvents
+                        {
+                            OnAuthenticationFailed = context =>
+                            {
+                                logger.LogError("mTLS Authentication FAILED: {Error}", context.Exception?.Message);
+                                return Task.CompletedTask;
+                            },
+                            OnCertificateValidated = context =>
+                            {
+                                logger.LogInformation("mTLS Authentication SUCCEEDED for certificate: {Subject}", 
+                                    context.ClientCertificate.Subject);
+                                
+                                if (mtlsSettings.ValidateClientCertificateIssuer)
+                                {
+                                    var issuer = context.ClientCertificate.Issuer;
+                                    if (!mtlsSettings.IsIssuerAllowed(issuer))
+                                    {
+                                        logger.LogError(
+                                            "mTLS: Certificate issuer '{Issuer}' is not in the allowed list. Allowed: [{Allowed}]",
+                                            issuer,
+                                            string.Join(", ", mtlsSettings.AllowedIssuers ?? new List<string>()));
+                                        context.Fail("Certificate issuer not trusted");
+                                    }
+                                }
+
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
+
+                logger.LogInformation("mTLS certificate authentication configured successfully");
             }
 
-            logger.LogInformation("mTLS: Certificate revocation check = {RevocationCheck}",
-                mtlsSettings.CheckCertificateRevocation ? "ENABLED" : "DISABLED");
-
-            services.AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
-                .AddCertificate(options =>
-                {
-                    // Configure certificate types
-                    if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
-                    {
-                        options.AllowedCertificateTypes = CertificateTypes.All;
-                    }
-                    else if (mtlsSettings.AllowSelfSignedCertificates)
-                    {
-                        options.AllowedCertificateTypes = CertificateTypes.SelfSigned;
-                    }
-                    else
-                    {
-                        options.AllowedCertificateTypes = CertificateTypes.Chained;
-                    }
-
-                    // Configure revocation mode
-                    options.RevocationMode = mtlsSettings.CheckCertificateRevocation 
-                        ? X509RevocationMode.Online 
-                        : X509RevocationMode.NoCheck;
-
-                    // Configure authentication events
-                    options.Events = new CertificateAuthenticationEvents
-                    {
-                        OnAuthenticationFailed = context =>
-                        {
-                            logger.LogError("mTLS Authentication FAILED: {Error}", context.Exception?.Message);
-                            return Task.CompletedTask;
-                        },
-                        OnCertificateValidated = context =>
-                        {
-                            logger.LogInformation("mTLS Authentication SUCCEEDED for certificate: {Subject}", 
-                                context.ClientCertificate.Subject);
-                            
-                            if (mtlsSettings.ValidateClientCertificateIssuer)
-                            {
-                                var issuer = context.ClientCertificate.Issuer;
-                                if (!mtlsSettings.IsIssuerAllowed(issuer))
-                                {
-                                    logger.LogError(
-                                        "mTLS: Certificate issuer '{Issuer}' is not in the allowed list. Allowed: [{Allowed}]",
-                                        issuer,
-                                        string.Join(", ", mtlsSettings.AllowedIssuers ?? new List<string>()));
-                                    context.Fail("Certificate issuer not trusted");
-                                }
-                            }
-
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
-
-            logger.LogInformation("mTLS certificate authentication configured successfully");
             return services;
         }
 
@@ -349,21 +357,23 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("Nonce Services are DISABLED");
-                return services;
+            }
+            else
+            {
+                var nonceSettings = configuration.GetSection("NonceEncryption").Get<NonceEncryptionSettings>()
+                    ?? throw new InvalidOperationException("NonceEncryptionSettings not found");
+
+                services.AddSingleton<INonceEncryptionSettingsService>(new NonceEncryptionSettingsService(nonceSettings));
+                services.AddSingleton<INonceRefresherService, NonceRefresherService>();
+                services.AddSingleton<INonceCatalogService, NonceCatalogService>();
+
+                // CSP Builder
+                services.Configure<CSPScriptHashSettings>(configuration.GetSection("CSPScriptHashes"));
+                services.AddSingleton<ContentSecurityPolicyBuilder>();
+
+                logger.LogInformation("Nonce and CSP services configured");
             }
 
-            var nonceSettings = configuration.GetSection("NonceEncryption").Get<NonceEncryptionSettings>()
-                ?? throw new InvalidOperationException("NonceEncryptionSettings not found");
-
-            services.AddSingleton<INonceEncryptionSettingsService>(new NonceEncryptionSettingsService(nonceSettings));
-            services.AddSingleton<INonceRefresherService, NonceRefresherService>();
-            services.AddSingleton<INonceCatalogService, NonceCatalogService>();
-
-            // CSP Builder
-            services.Configure<CSPScriptHashSettings>(configuration.GetSection("CSPScriptHashes"));
-            services.AddSingleton<ContentSecurityPolicyBuilder>();
-
-            logger.LogInformation("Nonce and CSP services configured");
             return services;
         }
 
@@ -379,21 +389,22 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("Blob Storage is DISABLED");
-                return services;
             }
-
-            var blobSettings = configuration.GetSection("BlobSettings").Get<BlobSettings>()
-                ?? throw new InvalidOperationException("BlobSettings not found");
-
-            if (string.IsNullOrEmpty(blobSettings.BlobConnectionString))
+            else
             {
-                throw new InvalidOperationException("BlobConnectionString is null or empty");
+                var blobSettings = configuration.GetSection("BlobSettings").Get<BlobSettings>()
+                    ?? throw new InvalidOperationException("BlobSettings not found");
+
+                if (string.IsNullOrEmpty(blobSettings.BlobConnectionString))
+                {
+                    throw new InvalidOperationException("BlobConnectionString is null or empty");
+                }
+
+                logger.LogInformation("BlobSettings configured with MaxAttachments: {Max}", blobSettings.MaxAttachments);
+
+                services.AddSingleton(blobSettings);
+                services.AddScoped<IBlobSettingsService, BlobSettingsService>();
             }
-
-            logger.LogInformation("BlobSettings configured with MaxAttachments: {Max}", blobSettings.MaxAttachments);
-
-            services.AddSingleton(blobSettings);
-            services.AddScoped<IBlobSettingsService, BlobSettingsService>();
 
             return services;
         }
@@ -410,38 +421,39 @@ namespace WebAppExperimental26.Extensions
             if (!enabled)
             {
                 logger.LogWarning("Cosmos DB is DISABLED");
-                return services;
             }
-
-            try
+            else
             {
-                var cosmosSettings = configuration.GetSection("CosmosDb").Get<CosmosDbSettings>()
-                    ?? throw new InvalidOperationException("CosmosDbSettings not found");
-
-                logger.LogInformation("Cosmos connection string configured: {Present}",
-                    !string.IsNullOrEmpty(cosmosSettings.CosmosConnectionString));
-
-                // Verify connection
-                var client = new CosmosClient(cosmosSettings.CosmosConnectionString);
-                var database = client.GetDatabase(cosmosSettings.DatabaseName);
-                await database.ReadAsync();
-
-                logger.LogInformation("Cosmos DB connection verified: {Endpoint}", client.Endpoint);
-
-                services.AddSingleton<ICosmosDbSettingsService>(new CosmosDbSettingsService(cosmosSettings));
-                services.AddSingleton(client);
-                services.AddSingleton<CosmosDbService>(provider =>
+                try
                 {
-                    var dbClient = provider.GetRequiredService<CosmosClient>();
-                    return new CosmosDbService(dbClient, cosmosSettings.DatabaseName);
-                });
+                    var cosmosSettings = configuration.GetSection("CosmosDb").Get<CosmosDbSettings>()
+                        ?? throw new InvalidOperationException("CosmosDbSettings not found");
 
-                logger.LogInformation("Cosmos DB services configured");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Cosmos DB configuration failed");
-                throw;
+                    logger.LogInformation("Cosmos connection string configured: {Present}",
+                        !string.IsNullOrEmpty(cosmosSettings.CosmosConnectionString));
+
+                    // Verify connection
+                    var client = new CosmosClient(cosmosSettings.CosmosConnectionString);
+                    var database = client.GetDatabase(cosmosSettings.DatabaseName);
+                    await database.ReadAsync();
+
+                    logger.LogInformation("Cosmos DB connection verified: {Endpoint}", client.Endpoint);
+
+                    services.AddSingleton<ICosmosDbSettingsService>(new CosmosDbSettingsService(cosmosSettings));
+                    services.AddSingleton(client);
+                    services.AddSingleton<CosmosDbService>(provider =>
+                    {
+                        var dbClient = provider.GetRequiredService<CosmosClient>();
+                        return new CosmosDbService(dbClient, cosmosSettings.DatabaseName);
+                    });
+
+                    logger.LogInformation("Cosmos DB services configured");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cosmos DB configuration failed");
+                    throw;
+                }
             }
 
             return services;

@@ -37,13 +37,15 @@ namespace WebAppExperimental26.Services
         {
             string caller = "NonceRefresherService.RefreshNonce()";
             string CSPNonce = string.Empty;
+            ILogger<Nonce>? nonceLogger = null;
+            Nonce? nonce = null;
 
             try
             {
                 // Generate a fresh cryptographically random nonce using RandomNumberGenerator.
                 // No Key Vault IV/key fetch is required — see Nonce.cs for the security rationale.
-                var nonceLogger = _loggerFactory.CreateLogger<Nonce>();
-                Nonce nonce = new(nonceLogger);
+                nonceLogger = _loggerFactory.CreateLogger<Nonce>();
+                nonce = new(nonceLogger);
                 CSPNonce = nonce.GetNonceAsString();
 
                 if (string.IsNullOrEmpty(CSPNonce))

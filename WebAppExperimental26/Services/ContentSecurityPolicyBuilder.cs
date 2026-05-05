@@ -13,6 +13,7 @@ namespace WebAppExperimental26.Services
         public string BuildCSPWithNonceAndHashes(string nonce, string? hashFilePath, CSPScriptHashSettings? csphs)
         {
             StringBuilder cspBuilder = new StringBuilder();
+            string? line;
             
             cspBuilder.Append("default-src 'none'; ");
             cspBuilder.Append("script-src 'self' https://www.physicalsecurityatlas.com 'nonce-");
@@ -26,7 +27,6 @@ namespace WebAppExperimental26.Services
                 {
                     using (StreamReader reader = new StreamReader(hashFilePath))
                     {
-                        string? line;
                         while ((line = reader.ReadLine()) != null)
                         {
                             if (!string.IsNullOrWhiteSpace(line))
@@ -69,17 +69,18 @@ namespace WebAppExperimental26.Services
            // string preamble = "default-src 'none'; script-src 'self' ";
             string preamble = "script-src ";
             string conclusion = " ; connect-src 'self'; img-src 'self'; style-src 'self'; frame-ancestors 'self'; form-action 'self';";
+            string fullFilePath;
+            string? line;
 
             CSPScriptHashes.Append(preamble);
 
             try
             {
-                string fullFilePath = Path.Combine(filePath);
+                fullFilePath = Path.Combine(filePath);
 
                 // Read the file line by line
                 using (StreamReader reader = new StreamReader(filePath))
                 {
-                    string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
                         CSPScriptHashes.Append("'");

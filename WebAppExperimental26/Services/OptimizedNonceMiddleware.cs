@@ -40,6 +40,8 @@ namespace WebAppExperimental26.Services
         public async Task InvokeAsync(HttpContext context)
         {
             string caller = "OptimizedNonceMiddleware.InvokeAsync()";
+            string existingNonce;
+            string nonce = string.Empty;
             Interlocked.Increment(ref _requestCount);
 
             // Check if this request should skip nonce generation
@@ -49,7 +51,7 @@ namespace WebAppExperimental26.Services
                 // SECURITY: Never fall back to a predictable hardcoded string — hardcoded
                 // nonce literals committed to source are known to attackers and allow CSP bypass
                 // even during error conditions (Critical #3).
-                var existingNonce = _nonceCatalogService.GetANonce("CSPNonce");
+                existingNonce = _nonceCatalogService.GetANonce("CSPNonce");
                 if (string.IsNullOrEmpty(existingNonce))
                 {
                     // First request before any nonce generated — produce a fresh random nonce.
@@ -59,42 +61,42 @@ namespace WebAppExperimental26.Services
                 context.Items["Nonce"] = existingNonce;
 
                 _logger.LogTrace("Reusing existing nonce for: {Path}", context.Request.Path);
-                await _next(context);
-                return;
             }
-
-            // This is a page request - generate fresh nonce
-            Interlocked.Increment(ref _nonceGenerationCount);
-
-            _logger.LogDebug("Generating nonce #{Count}/{Total} for page: {Path}",
-                _nonceGenerationCount, _requestCount, context.Request.Path);
-
-            try
+            else
             {
-                // Generate the nonce
-                await _nonceRefresherService.RefreshNonceAsync();
-                var nonce = _nonceCatalogService.GetANonce("CSPNonce");
+                // This is a page request - generate fresh nonce
+                Interlocked.Increment(ref _nonceGenerationCount);
 
-                if (string.IsNullOrEmpty(nonce))
+                _logger.LogDebug("Generating nonce #{Count}/{Total} for page: {Path}",
+                    _nonceGenerationCount, _requestCount, context.Request.Path);
+
+                try
                 {
-                    _logger.LogWarning("Nonce generation returned empty value for: {Path}", context.Request.Path);
-                    // SECURITY: Never fall back to a predictable hardcoded string (Critical #3).
-                    nonce = Nonce.GenerateSecureNonce();
+                    // Generate the nonce
+                    await _nonceRefresherService.RefreshNonceAsync();
+                    nonce = _nonceCatalogService.GetANonce("CSPNonce");
+
+                    if (string.IsNullOrEmpty(nonce))
+                    {
+                        _logger.LogWarning("Nonce generation returned empty value for: {Path}", context.Request.Path);
+                        // SECURITY: Never fall back to a predictable hardcoded string (Critical #3).
+                        nonce = Nonce.GenerateSecureNonce();
+                    }
+
+                    LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "",
+                        DataProcessingStatus.Info, $"Generated nonce for page request: {context.Request.Path}");
+
+                    // Store the nonce in the HttpContext
+                    context.Items["Nonce"] = nonce;
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error generating nonce for: {Path}", context.Request.Path);
 
-                LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "",
-                    DataProcessingStatus.Info, $"Generated nonce for page request: {context.Request.Path}");
-
-                // Store the nonce in the HttpContext
-                context.Items["Nonce"] = nonce;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating nonce for: {Path}", context.Request.Path);
-
-                // SECURITY: Never fall back to a predictable hardcoded string (Critical #3).
-                // Produce a fresh random nonce even in the error path.
-                context.Items["Nonce"] = Nonce.GenerateSecureNonce();
+                    // SECURITY: Never fall back to a predictable hardcoded string (Critical #3).
+                    // Produce a fresh random nonce even in the error path.
+                    context.Items["Nonce"] = Nonce.GenerateSecureNonce();
+                }
             }
 
             await _next(context);
@@ -117,45 +119,56 @@ namespace WebAppExperimental26.Services
         private bool ShouldIgnoreRequest(HttpRequest request)
         {
             var path = request.Path.Value;
+            string extension;
+            bool result;
+
             if (string.IsNullOrEmpty(path))
-                return false;
-
-            // Ignore requests to static file paths
-            foreach (var ignorePath in IgnorePaths)
             {
-                if (path.StartsWith(ignorePath, StringComparison.OrdinalIgnoreCase))
+                result = false;
+            }
+            else
+            {
+                result = false;
+
+                // Ignore requests to static file paths
+                foreach (var ignorePath in IgnorePaths)
                 {
-                    return true;
+                    if (path.StartsWith(ignorePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+
+                if (!result && path.Contains('.'))
+                {
+                    // Ignore requests with file extensions (static files)
+                    // BUT allow .cshtml (Razor pages) and pages without extensions
+                    extension = Path.GetExtension(path).ToLowerInvariant();
+
+                    // These extensions need nonces (Razor pages)
+                    if (extension == ".cshtml" || extension == string.Empty)
+                    {
+                        result = false;
+                    }
+                    else
+                    {
+                        // All other file extensions are static files
+                        result = true;
+                    }
+                }
+                else if (!result &&
+                    (path.Equals("/healthz", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("/ready", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("/alive", StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Ignore Azure health check probes
+                    result = true;
                 }
             }
 
-            // Ignore requests with file extensions (static files)
-            // BUT allow .cshtml (Razor pages) and pages without extensions
-            if (path.Contains('.'))
-            {
-                var extension = Path.GetExtension(path).ToLowerInvariant();
-                
-                // These extensions need nonces (Razor pages)
-                if (extension == ".cshtml" || extension == string.Empty)
-                {
-                    return false;
-                }
-
-                // All other file extensions are static files
-                return true;
-            }
-
-            // Ignore Azure health check probes
-            if (path.Equals("/healthz", StringComparison.OrdinalIgnoreCase) ||
-                path.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
-                path.Equals("/ready", StringComparison.OrdinalIgnoreCase) ||
-                path.Equals("/alive", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            // This is a page request - generate nonce
-            return false;
+            return result;
         }
 
         /// <summary>

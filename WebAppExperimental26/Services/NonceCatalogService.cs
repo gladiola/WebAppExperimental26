@@ -54,12 +54,19 @@ namespace WebAppExperimental26.Services
             // Use TryGetValue with the out parameter to atomically retrieve the value.
             // A two-step check-then-lookup is not thread-safe even with ConcurrentDictionary
             // because another thread may remove the key between the check and the lookup.
-            if (_nonceCollection.TryGetValue(whichOne, out var nonce))
+            Nonce? nonce;
+            string result;
+
+            if (_nonceCollection.TryGetValue(whichOne, out nonce))
             {
-                return nonce.GetNonceAsString();
+                result = nonce.GetNonceAsString();
+            }
+            else
+            {
+                result = string.Empty;
             }
 
-            return string.Empty;
+            return result;
         }
 
         /// <summary>

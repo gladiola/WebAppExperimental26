@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Primitives;
 using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.User;
 using Microsoft.Extensions.Logging;
@@ -49,16 +50,24 @@ namespace WebAppExperimental26.Services
         /// </summary>
         private static string HashPii(string? value)
         {
+            byte[] inputBytes;
+            byte[] hashBytes;
+            string result;
+
             if (string.IsNullOrEmpty(value))
             {
-                return "(none)";
+                result = "(none)";
+            }
+            else
+            {
+                inputBytes = Encoding.UTF8.GetBytes(value);
+                hashBytes = HMACSHA256.HashData(_hmacKey, inputBytes);
+                // Return the first 12 bytes (96 bits) as hex — short enough to read in logs,
+                // long enough to be collision-resistant for correlation purposes.
+                result = Convert.ToHexString(hashBytes, 0, 12).ToLowerInvariant();
             }
 
-            byte[] inputBytes = Encoding.UTF8.GetBytes(value);
-            byte[] hashBytes = HMACSHA256.HashData(_hmacKey, inputBytes);
-            // Return the first 12 bytes (96 bits) as hex — short enough to read in logs,
-            // long enough to be collision-resistant for correlation purposes.
-            return Convert.ToHexString(hashBytes, 0, 12).ToLowerInvariant();
+            return result;
         }
 
 
@@ -74,6 +83,9 @@ namespace WebAppExperimental26.Services
         {
 
             bool answerIdentifiedUserFully = false;
+            string userName;
+            UserClaimsLoader userClaimsLoader;
+            UserClaims userClaims;
 
             if (traceId != null)
             {
@@ -83,15 +95,15 @@ namespace WebAppExperimental26.Services
             if (claimsPrincipal.Identity != null)
             {
 
-                string userName = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? "Unknown User";
+                userName = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? "Unknown User";
                 LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Success, $"Auth for {HashPii(userName)}");
 
                 try
                 {
                     if (claimsPrincipal.Claims != null)
                     {
-                        UserClaimsLoader userClaimsLoader = new();
-                        UserClaims userClaims = await userClaimsLoader.LoadDataAsync(claimsPrincipal.Claims);
+                        userClaimsLoader = new();
+                        userClaims = await userClaimsLoader.LoadDataAsync(claimsPrincipal.Claims);
 
                         LoggingHelper.LogUserClaims(userClaims, _logger, methodName);
                         answerIdentifiedUserFully = true;
@@ -108,7 +120,7 @@ namespace WebAppExperimental26.Services
             }
             else
             {
-                string userName = claimsPrincipal.Identity?.Name ?? "Unknown User, User.Identity not detected.";
+                userName = claimsPrincipal.Identity?.Name ?? "Unknown User, User.Identity not detected.";
                 LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Failure, $"Failed Auth for {HashPii(userName)}");
             }
 
@@ -135,6 +147,7 @@ namespace WebAppExperimental26.Services
             string oidHash   = HashPii(userClaims.Oid);
             string emailHash = HashPii(userClaims.Email);
             string nameHash  = HashPii(userClaims.Name);
+            bool firstIterationComplete;
 
             // Log who is calling
             _logger.LogInformation("{0} {1} called in Session {2} User-Oid {3} Email {4} Name {5}", DateTime.UtcNow, methodName, sidHash, oidHash, emailHash, nameHash);
@@ -142,7 +155,7 @@ namespace WebAppExperimental26.Services
             StringBuilder sb = new StringBuilder();
             if (userClaims.Roles != null)
             {
-                bool firstIterationComplete = false;
+                firstIterationComplete = false;
                 foreach (var role in userClaims.Roles)
                 {
                     sb.Append(role);
@@ -174,11 +187,13 @@ namespace WebAppExperimental26.Services
         {
 
             string noteRequestId = Guid.NewGuid().ToString();
+            StringValues origin;
+            StringValues host;
 
             // Log who is calling
             // In this scheme, we do not see Origin headers being sent from the requestor.
-            request.Headers.TryGetValue("Origin", out var origin);
-            request.Headers.TryGetValue("Host", out var host);
+            request.Headers.TryGetValue("Origin", out origin);
+            request.Headers.TryGetValue("Host", out host);
             if (
                 !string.IsNullOrEmpty(origin) || !string.IsNullOrEmpty(host)
                 )
@@ -208,6 +223,11 @@ namespace WebAppExperimental26.Services
         {
             // Distinctly identify a Requst in the logs.
             string noteRequestId = Guid.NewGuid().ToString();
+            string methodName;
+            StringValues origin;
+            StringValues host;
+            MethodBase? callingMethod;
+            Type? callingClass;
 
             // Be able to name the calling class and method in logs
             StringBuilder sbCallingMethod = new StringBuilder();
@@ -219,10 +239,10 @@ namespace WebAppExperimental26.Services
             StackFrame? frame = st.GetFrame(1);
             if (frame != null)
             {
-                var callingMethod = frame.GetMethod();
+                callingMethod = frame.GetMethod();
                 if (callingMethod != null)
                 {
-                    var callingClass = callingMethod.DeclaringType;
+                    callingClass = callingMethod.DeclaringType;
 
 
                     sbCallingMethod.Append(callingMethod.Name);
@@ -254,13 +274,13 @@ namespace WebAppExperimental26.Services
                 sbMethodName.Append(sbCallingMethod.ToString());
             }
 
-            string methodName = sbMethodName.ToString();
+            methodName = sbMethodName.ToString();
 
 
             // Log who is calling
             // In this scheme, we do not see Origin headers being sent from the requestor.
-            request.Headers.TryGetValue("Origin", out var origin);
-            request.Headers.TryGetValue("Host", out var host);
+            request.Headers.TryGetValue("Origin", out origin);
+            request.Headers.TryGetValue("Host", out host);
             if (
                 !string.IsNullOrEmpty(origin) || !string.IsNullOrEmpty(host)
                 )
@@ -283,6 +303,8 @@ namespace WebAppExperimental26.Services
         /// <returns>Name of class.method</returns>
         public static string IdentifyCallingClassAndMethod()
         {
+            MethodBase? callingMethod;
+            Type? callingClass;
 
             // Be able to name the calling class and method in logs
             StringBuilder sbCallingMethod = new StringBuilder();
@@ -294,10 +316,10 @@ namespace WebAppExperimental26.Services
             StackFrame? frame = st.GetFrame(1);
             if (frame != null)
             {
-                var callingMethod = frame.GetMethod();
+                callingMethod = frame.GetMethod();
                 if (callingMethod != null)
                 {
-                    var callingClass = callingMethod.DeclaringType;
+                    callingClass = callingMethod.DeclaringType;
 
 
                     sbCallingMethod.Append(callingMethod.Name);
