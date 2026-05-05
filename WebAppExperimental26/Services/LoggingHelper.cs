@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.User;
@@ -13,6 +14,46 @@ namespace WebAppExperimental26.Services
     /// </summary>
     public static class LoggingHelper
     {
+        // HMAC-SHA256 key used to pseudonymise PII in logs.
+        // Set once at startup via Initialize(); falls back to a random per-process key.
+        private static byte[] _hmacKey = RandomNumberGenerator.GetBytes(32);
+
+        /// <summary>
+        /// Initialise the HMAC key used to hash PII values before they are written to logs.
+        /// Call this once at application startup, passing a stable secret from configuration.
+        /// If <paramref name="key"/> is null or empty a random key is generated for this
+        /// process lifetime, which still protects PII but prevents cross-restart correlation.
+        /// </summary>
+        /// <param name="key">32-byte HMAC key. Supply from a secret store (Key Vault, User Secrets).</param>
+        public static void Initialize(byte[]? key)
+        {
+            if (key != null && key.Length > 0)
+            {
+                _hmacKey = key;
+            }
+            // else: keep the random key already assigned at field-initialisation time.
+        }
+
+        /// <summary>
+        /// Returns a short, stable HMAC-SHA256 hex token for a PII value.
+        /// Identical inputs always produce identical tokens within the same process
+        /// (or across processes when a stable key is configured), enabling log correlation
+        /// without exposing the underlying value.
+        /// </summary>
+        private static string HashPii(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return "(none)";
+            }
+
+            byte[] inputBytes = Encoding.UTF8.GetBytes(value);
+            byte[] hashBytes = HMACSHA256.HashData(_hmacKey, inputBytes);
+            // Return the first 12 bytes (96 bits) as hex — short enough to read in logs,
+            // long enough to be collision-resistant for correlation purposes.
+            return Convert.ToHexString(hashBytes, 0, 12).ToLowerInvariant();
+        }
+
 
         /// <summary>
         /// Utility function to log user activity.
@@ -80,9 +121,16 @@ namespace WebAppExperimental26.Services
 
         public static void LogUserClaims(UserClaims userClaims, ILogger _logger, string methodName)
         {
+            // Hash PII fields before logging to avoid storing plaintext personal data.
+            // Tokens are consistent HMAC-SHA256 digests that support log correlation
+            // without exposing the underlying Sid, Oid, email, or display name.
+            string sidHash   = HashPii(userClaims.Sid);
+            string oidHash   = HashPii(userClaims.Oid);
+            string emailHash = HashPii(userClaims.Email);
+            string nameHash  = HashPii(userClaims.Name);
 
             // Log who is calling
-            _logger.LogInformation("{0} {1} called in Session {2} User-Oid {3} Email {4} Name {5}", DateTime.UtcNow, methodName, userClaims.Sid, userClaims.Oid, userClaims.Email, userClaims.Name);
+            _logger.LogInformation("{0} {1} called in Session {2} User-Oid {3} Email {4} Name {5}", DateTime.UtcNow, methodName, sidHash, oidHash, emailHash, nameHash);
 
             StringBuilder sb = new StringBuilder();
             if (userClaims.Roles != null)
@@ -102,7 +150,7 @@ namespace WebAppExperimental26.Services
                 }
             }
 
-            _logger.LogInformation("{0} Oid carries the following permissions: {1}", userClaims.Oid, sb.ToString());
+            _logger.LogInformation("{0} Oid carries the following permissions: {1}", oidHash, sb.ToString());
 
 
         }
