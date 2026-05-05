@@ -28,7 +28,9 @@ namespace WebAppExperimental26.Services
             await _nonceRefresherService.RefreshNonceAsync();
             var nonce = _nonceCatalogService.GetANonce("CSPNonce");
 
-            LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Info, $"Nonce: {nonce}");
+            // Do NOT log the nonce value — logging a nonce in plaintext allows anyone with log
+            // access to inject inline scripts by spoofing the known nonce value (Critical #2).
+            LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "", DataProcessingStatus.Info, "Nonce retrieved for request.");
 
             // Store the nonce in the HttpContext
             context.Items["Nonce"] = nonce;
