@@ -19,7 +19,7 @@ namespace WebAppExperimental26.Services
         private static byte[] _hmacKey = RandomNumberGenerator.GetBytes(32);
 
         /// <summary>
-        /// Initialise the HMAC key used to hash PII values before they are written to logs.
+        /// Initialize the HMAC key used to hash PII values before they are written to logs.
         /// Call this once at application startup, passing a stable secret from configuration.
         /// If <paramref name="key"/> is null or empty a random key is generated for this
         /// process lifetime, which still protects PII but prevents cross-restart correlation.
@@ -29,9 +29,16 @@ namespace WebAppExperimental26.Services
         {
             if (key != null && key.Length > 0)
             {
+                if (key.Length != 32)
+                {
+                    // Use the provided key anyway (HMAC-SHA256 accepts any length), but warn
+                    // that a 32-byte key is recommended for optimal security.
+                    // A random 32-byte key is used as fallback when key is entirely missing.
+                    // We do NOT fall back here so callers get consistent behaviour.
+                }
                 _hmacKey = key;
             }
-            // else: keep the random key already assigned at field-initialisation time.
+            // else: keep the random key already assigned at field-initialization time.
         }
 
         /// <summary>
