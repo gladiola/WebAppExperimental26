@@ -1,4 +1,5 @@
-﻿using WebAppExperimental26.Models.Main_Objects;
+﻿using System.Collections.Concurrent;
+using WebAppExperimental26.Models.Main_Objects;
 
 namespace WebAppExperimental26.Services
 {
@@ -16,8 +17,8 @@ namespace WebAppExperimental26.Services
     /// </summary>
     public class NonceCatalogService : INonceCatalogService
     {
-        // In-memory storage for the nonces
-        private static readonly Dictionary<string, Nonce> _nonceCollection = new Dictionary<string, Nonce>();
+        // In-memory storage for the nonces — ConcurrentDictionary is safe for concurrent reads and writes
+        private static readonly ConcurrentDictionary<string, Nonce> _nonceCollection = new ConcurrentDictionary<string, Nonce>();
 
         // Logging for the service
         private readonly ILogger<NonceCatalogService> _logger ;
@@ -67,15 +68,7 @@ namespace WebAppExperimental26.Services
         /// <returns>True if the collection no longer holds that key.</returns>
         public bool RemoveANonce(string whichOne)
         {
-            bool answer = false;
-
-            if (_nonceCollection.TryGetValue(whichOne, out _))
-            {
-                _nonceCollection.Remove(whichOne);
-                answer = !_nonceCollection.ContainsKey(whichOne);
-            }
-
-            return answer;
+            return _nonceCollection.TryRemove(whichOne, out _);
         }
     }
 }

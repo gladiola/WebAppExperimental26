@@ -67,7 +67,7 @@ If nonce generation fails or the nonce catalog is empty, the middleware falls ba
 
 ## 🟠 High
 
-### 4. NonceCatalogService Uses a Non-Thread-Safe Static Dictionary
+### 4. NonceCatalogService Uses a Non-Thread-Safe Static Dictionary ✅ Fixed in commit 
 
 **File:** `Services/NonceCatalogService.cs` (line 20)
 
