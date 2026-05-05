@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using WebAppExperimental26.Models;
 using WebAppExperimental26.Services;
@@ -26,6 +27,27 @@ namespace WebAppExperimental26.Controllers
         {
             LoggingHelper.TrackFunctionCall(HttpContext, "HomeController.Privacy");
             return View();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SetLanguage(string culture, string returnUrl)
+        {
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddYears(1),
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    IsEssential = true,
+                }
+            );
+
+            return LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
         }
 
         [AllowAnonymous]

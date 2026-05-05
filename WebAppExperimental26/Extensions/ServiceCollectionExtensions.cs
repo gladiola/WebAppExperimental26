@@ -54,7 +54,7 @@ namespace WebAppExperimental26.Extensions
         }
 
         /// <summary>
-        /// Configure localization to en-US only
+        /// Configure localization for en-US, de-DE, es-ES, and fr-FR
         /// </summary>
         public static IServiceCollection AddLocalizationConfiguration(this IServiceCollection services, ILogger logger, bool enabled = true)
         {
@@ -64,15 +64,24 @@ namespace WebAppExperimental26.Extensions
             }
             else
             {
+                services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+                var supportedCultures = new[]
+                {
+                    new CultureInfo("en-US"),
+                    new CultureInfo("de-DE"),
+                    new CultureInfo("es-ES"),
+                    new CultureInfo("fr-FR"),
+                };
+
                 services.Configure<RequestLocalizationOptions>(options =>
                 {
-                    var supportedCulture = new[] { new CultureInfo("en-US") };
                     options.DefaultRequestCulture = new RequestCulture("en-US");
-                    options.SupportedCultures = supportedCulture;
-                    options.SupportedUICultures = supportedCulture;
+                    options.SupportedCultures = supportedCultures;
+                    options.SupportedUICultures = supportedCultures;
                 });
 
-                logger.LogInformation("Localization configured for en-US only");
+                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR");
             }
 
             return services;
@@ -138,16 +147,18 @@ namespace WebAppExperimental26.Extensions
                 options.Conventions.AllowAnonymousToPage("/Privacy");
                 options.Conventions.AllowAnonymousToPage("/Error");
                 options.Conventions.AllowAnonymousToPage("/About");
-            });
+            })
+            .AddViewLocalization()
+            .AddDataAnnotationsLocalization();
 
             if (enableAuthorization)
             {
                 razorPages.AddMicrosoftIdentityUI();
-                logger.LogInformation("Razor Pages configured WITH authorization");
+                logger.LogInformation("Razor Pages configured WITH authorization and view localization");
             }
             else
             {
-                logger.LogInformation("Razor Pages configured WITHOUT authorization");
+                logger.LogInformation("Razor Pages configured WITHOUT authorization, with view localization");
             }
 
             return services;

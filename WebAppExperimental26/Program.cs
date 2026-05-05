@@ -156,6 +156,9 @@ namespace WebAppExperimental26
 
             app.UseHttpsRedirection();
 
+            // Localization — must be before UseRouting so culture is set for all middleware
+            app.UseLocalizationConfiguration(logger, featureFlags.EnableLocalization);
+
             // Security Middleware — must be first so every response (including 401/403
             // short-circuits from auth) carries the security headers.
             if (featureFlags.EnableCSP && featureFlags.EnableNonceServices)
