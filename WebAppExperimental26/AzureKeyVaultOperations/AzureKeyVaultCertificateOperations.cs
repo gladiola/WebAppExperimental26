@@ -50,11 +50,10 @@ namespace WebAppExperimental26.AzureKeyVaultOperations
             string keyVaultURL,
             string secretName)
         {
-            // Template implementation - users should implement based on their Key Vault setup
+            // Template stub — implement actual Azure Key Vault retrieval before deploying to production.
             _logger.LogWarning("GetSecretFromKeyVault called - implement this method for production use");
-            
-            // Return a dummy secret for template - actual implementation would fetch from Azure Key Vault
-            return await Task.FromResult(new KeyVaultSecret(secretName, "template-value"));
+            throw new NotImplementedException(
+                "GetSecretFromKeyVault is a template stub. Implement actual Key Vault retrieval before use.");
         }
     }
 }

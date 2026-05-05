@@ -84,7 +84,7 @@ namespace WebAppExperimental26.Services
             {
 
                 string userName = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? "Unknown User";
-                LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Success, $"Auth for {userName}");
+                LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Success, $"Auth for {HashPii(userName)}");
 
                 try
                 {
@@ -109,7 +109,7 @@ namespace WebAppExperimental26.Services
             else
             {
                 string userName = claimsPrincipal.Identity?.Name ?? "Unknown User, User.Identity not detected.";
-                LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Failure, $"Failed Auth for {userName}");
+                LoggingHelper.LogDataProcessingStatusServiceWork(_logger, methodName, noteRequestId, DataProcessingStatus.Failure, $"Failed Auth for {HashPii(userName)}");
             }
 
             return answerIdentifiedUserFully;

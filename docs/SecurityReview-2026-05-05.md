@@ -197,7 +197,7 @@ The standard security headers do not include `Referrer-Policy`. Without this, th
 
 ## 🔵 Low / Informational
 
-### 16. PII Logged in Plaintext
+### 16. PII Logged in Plaintext ✅ Fixed in commit 93bb4e9
 
 **File:** `Services/LoggingHelper.cs` (lines 85, 105)
 
@@ -214,7 +214,7 @@ Depending on applicable privacy regulations (GDPR, CCPA, HIPAA), this could be a
 
 ---
 
-### 17. Partial Connection String in Logs
+### 17. Partial Connection String in Logs ✅ Fixed in commit 93bb4e9
 
 **File:** `Extensions/ServiceCollectionExtensions.cs` (line 404)
 
@@ -227,7 +227,7 @@ Even a partial secret in logs is not best practice. The log statement should ins
 
 ---
 
-### 18. Key Vault Operations Are Stubs
+### 18. Key Vault Operations Are Stubs ✅ Fixed in commit 93bb4e9
 
 **File:** `AzureKeyVaultOperations/AzureKeyVaultCertificateOperations.cs`
 
@@ -235,7 +235,7 @@ Both `GetCertificateFromKeyVault` and `GetSecretFromKeyVault` are template stubs
 
 ---
 
-### 19. `X-XSS-Protection: 1; mode=block` is Deprecated
+### 19. `X-XSS-Protection: 1; mode=block` is Deprecated ✅ Fixed in commit 93bb4e9
 
 **File:** `Extensions/ApplicationBuilderExtensions.cs` (line 70)
 

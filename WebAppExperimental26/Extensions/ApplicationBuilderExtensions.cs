@@ -67,7 +67,7 @@ namespace WebAppExperimental26.Extensions
             app.Use(async (context, next) =>
             {
                 context.Response.Headers.Append("X-Frame-Options", "DENY");
-                context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+                context.Response.Headers.Append("X-XSS-Protection", "0");
                 context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
                 context.Response.Headers.Append("Content-Type", "text/html; charset=UTF-8");
                 context.Response.Headers.Append("Set-Cookie", "path=/; Secure; HttpOnly; SameSite=Strict");
