@@ -48,7 +48,7 @@ namespace WebAppExperimental26.Services
         /// (or across processes when a stable key is configured), enabling log correlation
         /// without exposing the underlying value.
         /// </summary>
-        private static string HashPii(string? value)
+        internal static string HashPii(string? value)
         {
             byte[] inputBytes;
             byte[] hashBytes;
@@ -433,6 +433,83 @@ namespace WebAppExperimental26.Services
         {
             var contextInfo = string.IsNullOrEmpty(context) ? string.Empty : $"[{context}] ";
             logger.LogInformation("{0} {1} {2}{3} - {4}", DateTime.UtcNow, caller, contextInfo, status, message);
+        }
+
+        // ------------------------------------------------------------------ Call-chain tracking
+
+        /// <summary>
+        /// Key used to store the per-request call chain in <see cref="HttpContext.Items"/>.
+        /// </summary>
+        public const string CallChainKey = "LoggingHelper_CallChain";
+
+        /// <summary>
+        /// Key used to store the per-request short request ID in <see cref="HttpContext.Items"/>.
+        /// </summary>
+        public const string RequestIdKey = "LoggingHelper_RequestId";
+
+        /// <summary>
+        /// Appends <paramref name="functionName"/> to the per-request call chain stored in
+        /// <see cref="HttpContext.Items"/>.  Call this at the start of any method that should
+        /// appear in the logged call chain.  Does nothing if <paramref name="context"/> is null
+        /// or the chain has not been initialised by the logging middleware.
+        /// </summary>
+        /// <param name="context">Current HTTP context.</param>
+        /// <param name="functionName">Human-readable "ClassName.MethodName" label.</param>
+        public static void TrackFunctionCall(HttpContext? context, string functionName)
+        {
+            if (context?.Items[CallChainKey] is List<string> chain)
+            {
+                chain.Add(functionName);
+            }
+        }
+
+        /// <summary>
+        /// Returns the accumulated call chain for the current request, or an empty list
+        /// if tracking has not been initialised.
+        /// </summary>
+        public static IReadOnlyList<string> GetCallChain(HttpContext? context)
+        {
+            if (context?.Items[CallChainKey] is List<string> chain)
+            {
+                return chain;
+            }
+            return Array.Empty<string>();
+        }
+
+        /// <summary>
+        /// Writes the call chain to the log in catalog style, aligned with the user session
+        /// and the current HTTP request.
+        /// </summary>
+        /// <param name="logger">Logger for the middleware or component writing the summary.</param>
+        /// <param name="traceId">ASP.NET Core <c>HttpContext.TraceIdentifier</c>.</param>
+        /// <param name="sessionId">Hashed user session identifier (SID claim or ASP.NET session ID).</param>
+        /// <param name="outcome">Short outcome label, e.g. "Response 200", "Exception InvalidOperationException", "Aborted".</param>
+        /// <param name="chain">Ordered list of function names activated during the request.</param>
+        public static void LogCallChainCatalog(
+            ILogger logger,
+            string traceId,
+            string sessionId,
+            string outcome,
+            IReadOnlyList<string> chain)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine($"  ┌─ CALL-CHAIN | {DateTime.UtcNow:u} | Trace {traceId} | Session {sessionId} | {outcome}");
+
+            if (chain.Count == 0)
+            {
+                sb.AppendLine("  │   (no functions tracked)");
+            }
+            else
+            {
+                for (int i = 0; i < chain.Count; i++)
+                {
+                    string prefix = (i == chain.Count - 1) ? "  └─" : "  ├─";
+                    sb.AppendLine($"  {prefix} {i + 1,2}. {chain[i]}");
+                }
+            }
+
+            logger.LogInformation("{CallChainCatalog}", sb.ToString().TrimEnd());
         }
     }
 }
