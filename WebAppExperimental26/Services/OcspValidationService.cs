@@ -61,6 +61,9 @@ namespace WebAppExperimental26.Services
         /// </summary>
         public async Task<OcspValidationResult> ValidateCertificateWithDetailsAsync(X509Certificate2 certificate)
         {
+            var certKey = certificate.Thumbprint;
+            OcspValidationResult result;
+
             // Check if OCSP validation is enabled
             if (!_settings.EnableOcspValidation)
             {
@@ -68,45 +71,60 @@ namespace WebAppExperimental26.Services
                 {
                     _logger.LogInformation("OCSP validation is disabled");
                 }
-                return new OcspValidationResult
+                result = new OcspValidationResult
                 {
                     IsValid = true,
                     Status = OcspStatus.Disabled,
                     Message = "OCSP validation is disabled"
                 };
             }
-
             // Check if OCSP server URL is configured
-            if (string.IsNullOrEmpty(_settings.OcspServerUrl))
+            else if (string.IsNullOrEmpty(_settings.OcspServerUrl))
             {
                 _logger.LogWarning("OCSP server URL is not configured");
-                return HandleServerUnavailable("OCSP server URL is not configured");
+                result = HandleServerUnavailable("OCSP server URL is not configured");
             }
-
-            // Check cache first
-            var certKey = certificate.Thumbprint;
-            if (_cache.TryGetValue(certKey, out var cachedResponse))
+            else
             {
-                if (cachedResponse.ExpiresAt > DateTime.UtcNow)
+                // Check cache first
+                if (_cache.TryGetValue(certKey, out var cachedResponse))
                 {
-                    if (_settings.EnableDetailedLogging)
+                    if (cachedResponse.ExpiresAt > DateTime.UtcNow)
                     {
-                        _logger.LogInformation("Using cached OCSP response for certificate {Thumbprint}", certKey);
+                        if (_settings.EnableDetailedLogging)
+                        {
+                            _logger.LogInformation("Using cached OCSP response for certificate {Thumbprint}", certKey);
+                        }
+                        result = cachedResponse.Result;
                     }
-                    return cachedResponse.Result;
+                    else
+                    {
+                        // Remove expired cache entry
+                        _cache.Remove(certKey);
+                        result = await PerformAndCacheOcspValidationAsync(certificate, certKey);
+                    }
                 }
                 else
                 {
-                    // Remove expired cache entry
-                    _cache.Remove(certKey);
+                    result = await PerformAndCacheOcspValidationAsync(certificate, certKey);
                 }
             }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Performs OCSP validation and caches the result on success.
+        /// </summary>
+        private async Task<OcspValidationResult> PerformAndCacheOcspValidationAsync(X509Certificate2 certificate, string certKey)
+        {
+            OcspValidationResult result;
 
             // Perform OCSP validation
             try
             {
-                var result = await PerformOcspValidationAsync(certificate);
-                
+                result = await PerformOcspValidationAsync(certificate);
+
                 // Cache the result
                 if (result.IsValid && _settings.CacheDurationMinutes > 0)
                 {
@@ -116,14 +134,14 @@ namespace WebAppExperimental26.Services
                         ExpiresAt = DateTime.UtcNow.AddMinutes(_settings.CacheDurationMinutes)
                     };
                 }
-
-                return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during OCSP validation for certificate {Thumbprint}", certKey);
-                return HandleServerUnavailable($"OCSP validation error: {ex.Message}");
+                result = HandleServerUnavailable($"OCSP validation error: {ex.Message}");
             }
+
+            return result;
         }
 
         /// <summary>
@@ -160,37 +178,43 @@ namespace WebAppExperimental26.Services
         private OcspValidationResult HandleServerUnavailable(string message)
         {
             var behavior = _settings.ServerUnavailableBehavior.ToLower();
+            OcspValidationResult result;
 
             switch (behavior)
             {
                 case "fail":
                     _logger.LogError("OCSP server unavailable - Rejecting request: {Message}", message);
-                    return new OcspValidationResult
+                    result = new OcspValidationResult
                     {
                         IsValid = false,
                         Status = OcspStatus.ServerUnavailable,
                         Message = message
                     };
+                    break;
 
                 case "allow":
                     _logger.LogWarning("OCSP server unavailable - Allowing request: {Message}", message);
-                    return new OcspValidationResult
+                    result = new OcspValidationResult
                     {
                         IsValid = true,
                         Status = OcspStatus.ServerUnavailable,
                         Message = message
                     };
+                    break;
 
                 case "warn":
                 default:
                     _logger.LogWarning("OCSP server unavailable - Warning only: {Message}", message);
-                    return new OcspValidationResult
+                    result = new OcspValidationResult
                     {
                         IsValid = true,
                         Status = OcspStatus.Warning,
                         Message = message
                     };
+                    break;
             }
+
+            return result;
         }
     }
 
