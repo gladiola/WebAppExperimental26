@@ -26,6 +26,7 @@ using System.Text;
 using WebAppExperimental26.Models.Main_Objects;
 using WebAppExperimental26.Models.Settings;
 using WebAppExperimental26.Extensions;
+using WebAppExperimental26.Services;
 
 namespace WebAppExperimental26
 {
@@ -44,6 +45,32 @@ namespace WebAppExperimental26
 
             var logger = loggerFactory.CreateLogger("Program");
             logger.LogInformation("=== Application Starting - {Environment} ===", environment.EnvironmentName);
+
+            // Initialize PII hashing for log output (security task 16).
+            // Supply a stable 32-byte base64 key via Logging:PiiHmacKey (User Secrets / Key Vault).
+            // If absent or invalid, a random key is used for this process lifetime.
+            var piiHmacKeyBase64 = builder.Configuration["Logging:PiiHmacKey"];
+            byte[]? piiHmacKey = null;
+            if (!string.IsNullOrWhiteSpace(piiHmacKeyBase64))
+            {
+                try
+                {
+                    var decoded = Convert.FromBase64String(piiHmacKeyBase64);
+                    if (decoded.Length == 32)
+                    {
+                        piiHmacKey = decoded;
+                    }
+                    else
+                    {
+                        logger.LogWarning("Logging:PiiHmacKey must be exactly 32 bytes when base64-decoded (got {Length} bytes); a random key will be used for this session.", decoded.Length);
+                    }
+                }
+                catch (FormatException)
+                {
+                    logger.LogWarning("Logging:PiiHmacKey is not valid base64; a random key will be used for this session.");
+                }
+            }
+            LoggingHelper.Initialize(piiHmacKey);
 
             // Load feature flags
             builder.Services.AddFeatureFlags(builder.Configuration);
