@@ -69,8 +69,7 @@ namespace WebAppExperimental26.Extensions
                 context.Response.Headers.Append("X-Frame-Options", "DENY");
                 context.Response.Headers.Append("X-XSS-Protection", "0");
                 context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-                context.Response.Headers.Append("Content-Type", "text/html; charset=UTF-8");
-                context.Response.Headers.Append("Set-Cookie", "path=/; Secure; HttpOnly; SameSite=Strict");
+                context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
                 context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
                 context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
                 context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-site");

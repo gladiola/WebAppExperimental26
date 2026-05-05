@@ -135,7 +135,7 @@ The default configuration ships with no authentication or authorization. A devel
 
 ## 🟡 Medium
 
-### 10. Session Cookie Missing `Secure` and `SameSite` Attributes
+### 10. Session Cookie Missing `Secure` and `SameSite` Attributes ✅ Fixed in commit 8f2223c
 
 **File:** `Extensions/ServiceCollectionExtensions.cs` (lines 41–46)
 
@@ -143,7 +143,7 @@ The session cookie sets `HttpOnly = true` and `IsEssential = true`, but omits `C
 
 ---
 
-### 11. Malformed Global `Set-Cookie` Header
+### 11. Malformed Global `Set-Cookie` Header ✅ Fixed in commit 8f2223c
 
 **File:** `Extensions/ApplicationBuilderExtensions.cs` (line 73)
 
@@ -155,7 +155,7 @@ This appends a nameless, valueless `Set-Cookie` header to every response. This i
 
 ---
 
-### 12. `Content-Type` Forcibly Set to `text/html` for All Responses
+### 12. `Content-Type` Forcibly Set to `text/html` for All Responses ✅ Fixed in commit 8f2223c
 
 **File:** `Extensions/ApplicationBuilderExtensions.cs` (line 72)
 
@@ -167,7 +167,7 @@ This overwrites Content-Type for every response — API endpoints, JSON, binary 
 
 ---
 
-### 13. `AllowedHosts` Set to Wildcard
+### 13. `AllowedHosts` Set to Wildcard ✅ Fixed in commit 8f2223c
 
 **Files:** `appsettings.json` (line 11), `appsettings.template.json` (line 36)
 
@@ -179,7 +179,7 @@ This disables ASP.NET Core's built-in host header validation. Host header inject
 
 ---
 
-### 14. Layout Does Not Apply Nonce to `<script>` Tags
+### 14. Layout Does Not Apply Nonce to `<script>` Tags ✅ Fixed in commit 8f2223c
 
 **File:** `Views/Shared/_Layout.cshtml`
 
@@ -187,7 +187,7 @@ The layout loads several JavaScript files (`jquery.min.js`, `bootstrap.bundle.mi
 
 ---
 
-### 15. Referrer-Policy Header Missing
+### 15. Referrer-Policy Header Missing ✅ Fixed in commit 8f2223c
 
 **File:** `Extensions/ApplicationBuilderExtensions.cs`
 
