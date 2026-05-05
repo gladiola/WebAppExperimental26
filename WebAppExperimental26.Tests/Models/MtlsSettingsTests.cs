@@ -274,5 +274,78 @@ namespace WebAppExperimental26.Tests.Models
             settings.AllowSelfSignedCertificates.Should().BeTrue();
             settings.ClientCertificateName.Should().Be("deserialized-cert");
         }
+
+        // ── Security fix #5: issuer validation ─────────────────────────────────
+
+        [Fact]
+        public void AllowedIssuers_DefaultsToEmptyList()
+        {
+            var settings = new MtlsSettings();
+            settings.AllowedIssuers.Should().NotBeNull();
+            settings.AllowedIssuers.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void IsIssuerAllowed_ReturnsFalse_WhenValidationEnabled_AndAllowedIssuersEmpty()
+        {
+            // If ValidateClientCertificateIssuer = true but no issuers configured,
+            // the method must reject every issuer (fail-closed).
+            var settings = new MtlsSettings
+            {
+                ValidateClientCertificateIssuer = true,
+                AllowedIssuers = new List<string>()
+            };
+
+            settings.IsIssuerAllowed("CN=Any CA").Should().BeFalse(
+                "an empty allowed-issuers list should deny all issuers (security fix #5)");
+        }
+
+        [Fact]
+        public void IsIssuerAllowed_ReturnsTrue_WhenValidationDisabled()
+        {
+            var settings = new MtlsSettings
+            {
+                ValidateClientCertificateIssuer = false,
+                AllowedIssuers = new List<string>()
+            };
+
+            settings.IsIssuerAllowed("CN=Any CA").Should().BeTrue(
+                "when issuer validation is disabled, all issuers should be accepted");
+        }
+
+        [Theory]
+        [InlineData("CN=My Company CA, O=MyOrg", "My Company CA", true)]
+        [InlineData("CN=My Company CA, O=MyOrg", "MYORG", true)]
+        [InlineData("CN=My Company CA, O=MyOrg", "Unknown CA", false)]
+        [InlineData("CN=My Company CA, O=MyOrg", "evil.com", false)]
+        public void IsIssuerAllowed_MatchesSubstring_CaseInsensitive(
+            string issuer, string allowedEntry, bool expectedResult)
+        {
+            var settings = new MtlsSettings
+            {
+                ValidateClientCertificateIssuer = true,
+                AllowedIssuers = new List<string> { allowedEntry }
+            };
+
+            settings.IsIssuerAllowed(issuer).Should().Be(expectedResult,
+                "IsIssuerAllowed must perform case-insensitive substring matching (security fix #5)");
+        }
+
+        [Fact]
+        public void IsIssuerAllowed_ReturnsFalse_ForUntrustedIssuer_WhenAllowedIssuersConfigured()
+        {
+            // This is the regression test: if the validation is removed/commented out,
+            // any issuer would be accepted and this test would fail.
+            var settings = new MtlsSettings
+            {
+                ValidateClientCertificateIssuer = true,
+                AllowedIssuers = new List<string> { "CN=Trusted CA" }
+            };
+
+            settings.IsIssuerAllowed("CN=Untrusted CA, O=Attacker").Should().BeFalse(
+                "certificates from issuers not in AllowedIssuers must be rejected (security fix #5)");
+            settings.IsIssuerAllowed("CN=Trusted CA, O=MyOrg").Should().BeTrue(
+                "certificates from an allowed issuer must be accepted");
+        }
     }
 }

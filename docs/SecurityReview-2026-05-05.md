@@ -67,7 +67,7 @@ If nonce generation fails or the nonce catalog is empty, the middleware falls ba
 
 ## 🟠 High
 
-### 4. NonceCatalogService Uses a Non-Thread-Safe Static Dictionary ✅ Fixed in commit 
+### 4. NonceCatalogService Uses a Non-Thread-Safe Static Dictionary ✅ Fixed in commit ae2b6c9
 
 **File:** `Services/NonceCatalogService.cs` (line 20)
 
@@ -79,7 +79,7 @@ private static readonly Dictionary<string, Nonce> _nonceCollection = new Diction
 
 ---
 
-### 5. mTLS Certificate Issuer Validation is Stubbed Out
+### 5. mTLS Certificate Issuer Validation is Stubbed Out ✅ Fixed in commit 
 
 **File:** `Extensions/ServiceCollectionExtensions.cs` (lines 305–313)
 

@@ -303,14 +303,17 @@ namespace WebAppExperimental26.Extensions
                             logger.LogInformation("mTLS Authentication SUCCEEDED for certificate: {Subject}", 
                                 context.ClientCertificate.Subject);
                             
-                            // Additional custom validation can be added here
                             if (mtlsSettings.ValidateClientCertificateIssuer)
                             {
-                                // Example: Validate specific issuer
-                                // if (!context.ClientCertificate.Issuer.Contains("Expected Issuer"))
-                                // {
-                                //     context.Fail("Certificate issuer not trusted");
-                                // }
+                                var issuer = context.ClientCertificate.Issuer;
+                                if (!mtlsSettings.IsIssuerAllowed(issuer))
+                                {
+                                    logger.LogError(
+                                        "mTLS: Certificate issuer '{Issuer}' is not in the allowed list. Allowed: [{Allowed}]",
+                                        issuer,
+                                        string.Join(", ", mtlsSettings.AllowedIssuers ?? new List<string>()));
+                                    context.Fail("Certificate issuer not trusted");
+                                }
                             }
 
                             return Task.CompletedTask;
