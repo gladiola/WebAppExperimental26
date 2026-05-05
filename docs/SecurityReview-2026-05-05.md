@@ -104,7 +104,7 @@ With mTLS enabled, any client certificate from any issuer (that chains to a trus
 
 ---
 
-### 7. OCSP Validation is a Stub That Always Returns Valid ✅ Fixed in commit 
+### 7. OCSP Validation is a Stub That Always Returns Valid ✅ Fixed in commit b4c3807
 
 **File:** `Services/OcspValidationService.cs` (lines 149–163)
 
@@ -112,7 +112,7 @@ The `PerformOcspValidationAsync` method is explicitly a "template implementation
 
 ---
 
-### 8. Authentication and Authorization Disabled by Default
+### 8. Authentication and Authorization Disabled by Default ✅ Fixed in commit 
 
 **File:** `appsettings.json` (lines 16–17)
 
