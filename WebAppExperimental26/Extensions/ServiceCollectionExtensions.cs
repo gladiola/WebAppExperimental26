@@ -401,8 +401,8 @@ namespace WebAppExperimental26.Extensions
                 var cosmosSettings = configuration.GetSection("CosmosDb").Get<CosmosDbSettings>()
                     ?? throw new InvalidOperationException("CosmosDbSettings not found");
 
-                logger.LogInformation("Cosmos connection string sample (last 5): {Sample}",
-                    cosmosSettings.CosmosConnectionString[^5..]);
+                logger.LogInformation("Cosmos connection string configured: {Present}",
+                    !string.IsNullOrEmpty(cosmosSettings.CosmosConnectionString));
 
                 // Verify connection
                 var client = new CosmosClient(cosmosSettings.CosmosConnectionString);
