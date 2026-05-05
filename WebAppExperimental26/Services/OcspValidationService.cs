@@ -127,39 +127,31 @@ namespace WebAppExperimental26.Services
         }
 
         /// <summary>
-        /// Performs the actual OCSP validation against the OCSP server
-        /// TEMPLATE IMPLEMENTATION - Replace with actual OCSP protocol implementation
+        /// Performs the actual OCSP validation against the OCSP server.
         /// </summary>
-        private async Task<OcspValidationResult> PerformOcspValidationAsync(X509Certificate2 certificate)
+        /// <remarks>
+        /// This implementation is a stub. Until a real OCSP protocol implementation is
+        /// provided, it fails closed (returns <c>IsValid = false</c>) so that enabling
+        /// OCSP validation in configuration never silently passes revoked certificates.
+        /// Replace this method with a production implementation before enabling OCSP in
+        /// production environments.
+        /// </remarks>
+        private Task<OcspValidationResult> PerformOcspValidationAsync(X509Certificate2 certificate)
         {
-            if (_settings.EnableDetailedLogging)
+            _logger.LogError(
+                "OCSP validation is enabled but no real implementation is present. " +
+                "Certificate {Subject} ({Thumbprint}) is rejected until a production OCSP client is provided.",
+                certificate.Subject, certificate.Thumbprint);
+
+            return Task.FromResult(new OcspValidationResult
             {
-                _logger.LogInformation("Validating certificate {Subject} against OCSP server {Server}", 
-                    certificate.Subject, _settings.OcspServerUrl);
-            }
-
-            // Template implementation - returns successful validation
-            // In production, this should:
-            // 1. Build an OCSP request using the certificate and issuer
-            // 2. Send the request to the OCSP server
-            // 3. Parse the OCSP response
-            // 4. Validate the response signature
-            // 5. Return the certificate status
-
-            _logger.LogWarning("Using template OCSP implementation - Replace with actual OCSP protocol");
-
-            // Simulate async operation
-            await Task.Delay(100);
-
-            return new OcspValidationResult
-            {
-                IsValid = true,
-                Status = OcspStatus.Good,
-                Message = "Certificate status: Good (Template Implementation)",
+                IsValid = false,
+                Status = OcspStatus.Error,
+                Message = "OCSP validation is not implemented. Replace PerformOcspValidationAsync with a production implementation.",
                 ValidatedAt = DateTime.UtcNow,
                 CertificateThumbprint = certificate.Thumbprint,
                 CertificateSubject = certificate.Subject
-            };
+            });
         }
 
         /// <summary>

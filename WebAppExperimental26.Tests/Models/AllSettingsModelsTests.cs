@@ -109,7 +109,8 @@ namespace WebAppExperimental26.Tests.Models
                     AccountKey = "test-key",
                     DatabaseName = "TestDb",
                     ContainerName = "TestContainer",
-                    CosmosConnectionString = "AccountEndpoint=test"
+                    CosmosConnectionString = "AccountEndpoint=test",
+                    CommonPartitionKey = "test-partition"
                 };
 
                 // Assert
@@ -202,7 +203,7 @@ namespace WebAppExperimental26.Tests.Models
                 settings.RequireClientCertificate.Should().BeTrue();
                 settings.AllowCertificateChains.Should().BeTrue();
                 settings.AllowSelfSignedCertificates.Should().BeFalse();
-                settings.CheckCertificateRevocation.Should().BeFalse();
+                settings.CheckCertificateRevocation.Should().BeTrue();
                 settings.ValidateClientCertificateIssuer.Should().BeTrue();
                 settings.ClientCertificateName.Should().BeNull();
             }

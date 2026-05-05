@@ -67,7 +67,7 @@ If nonce generation fails or the nonce catalog is empty, the middleware falls ba
 
 ## 🟠 High
 
-### 4. NonceCatalogService Uses a Non-Thread-Safe Static Dictionary
+### 4. NonceCatalogService Uses a Non-Thread-Safe Static Dictionary ✅ Fixed in commit ae2b6c9
 
 **File:** `Services/NonceCatalogService.cs` (line 20)
 
@@ -79,7 +79,7 @@ private static readonly Dictionary<string, Nonce> _nonceCollection = new Diction
 
 ---
 
-### 5. mTLS Certificate Issuer Validation is Stubbed Out
+### 5. mTLS Certificate Issuer Validation is Stubbed Out ✅ Fixed in commit fd3d4fb
 
 **File:** `Extensions/ServiceCollectionExtensions.cs` (lines 305–313)
 
@@ -96,7 +96,7 @@ With mTLS enabled, any client certificate from any issuer (that chains to a trus
 
 ---
 
-### 6. mTLS Certificate Revocation Checking Disabled by Default
+### 6. mTLS Certificate Revocation Checking Disabled by Default ✅ Fixed in commit fd3d7b3
 
 **Files:** `Models/Settings/MtlsSettings.cs` (line 26), `appsettings.template.json`
 
@@ -104,7 +104,7 @@ With mTLS enabled, any client certificate from any issuer (that chains to a trus
 
 ---
 
-### 7. OCSP Validation is a Stub That Always Returns Valid
+### 7. OCSP Validation is a Stub That Always Returns Valid ✅ Fixed in commit b4c3807
 
 **File:** `Services/OcspValidationService.cs` (lines 149–163)
 
@@ -112,7 +112,7 @@ The `PerformOcspValidationAsync` method is explicitly a "template implementation
 
 ---
 
-### 8. Authentication and Authorization Disabled by Default
+### 8. Authentication and Authorization Disabled by Default ✅ Fixed in commit b392c47
 
 **File:** `appsettings.json` (lines 16–17)
 
@@ -125,7 +125,7 @@ The default configuration ships with no authentication or authorization. A devel
 
 ---
 
-### 9. Security Headers Applied After Routing/Auth
+### 9. Security Headers Applied After Routing/Auth ✅ Fixed in commit 016e57c
 
 **File:** `Program.cs` (lines 130–152)
 

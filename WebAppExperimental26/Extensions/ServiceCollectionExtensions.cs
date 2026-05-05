@@ -262,6 +262,24 @@ namespace WebAppExperimental26.Extensions
 
             logger.LogInformation("Configuring mTLS certificate authentication");
 
+            // Evaluate and log the configuration eagerly so that tests and operators can
+            // see what is configured at startup time (not deferred inside AddCertificate).
+            if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
+            {
+                logger.LogWarning("mTLS: Allowing both chained AND self-signed certificates");
+            }
+            else if (mtlsSettings.AllowSelfSignedCertificates)
+            {
+                logger.LogWarning("mTLS: Allowing self-signed certificates only");
+            }
+            else
+            {
+                logger.LogInformation("mTLS: Allowing chained certificates only (recommended)");
+            }
+
+            logger.LogInformation("mTLS: Certificate revocation check = {RevocationCheck}",
+                mtlsSettings.CheckCertificateRevocation ? "ENABLED" : "DISABLED");
+
             services.AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
                 .AddCertificate(options =>
                 {
@@ -269,26 +287,20 @@ namespace WebAppExperimental26.Extensions
                     if (mtlsSettings.AllowSelfSignedCertificates && mtlsSettings.AllowCertificateChains)
                     {
                         options.AllowedCertificateTypes = CertificateTypes.All;
-                        logger.LogWarning("mTLS: Allowing both chained AND self-signed certificates");
                     }
                     else if (mtlsSettings.AllowSelfSignedCertificates)
                     {
                         options.AllowedCertificateTypes = CertificateTypes.SelfSigned;
-                        logger.LogWarning("mTLS: Allowing self-signed certificates only");
                     }
                     else
                     {
                         options.AllowedCertificateTypes = CertificateTypes.Chained;
-                        logger.LogInformation("mTLS: Allowing chained certificates only (recommended)");
                     }
 
                     // Configure revocation mode
                     options.RevocationMode = mtlsSettings.CheckCertificateRevocation 
                         ? X509RevocationMode.Online 
                         : X509RevocationMode.NoCheck;
-
-                    logger.LogInformation("mTLS: Certificate revocation check = {RevocationCheck}", 
-                        mtlsSettings.CheckCertificateRevocation ? "ENABLED" : "DISABLED");
 
                     // Configure authentication events
                     options.Events = new CertificateAuthenticationEvents
@@ -303,14 +315,17 @@ namespace WebAppExperimental26.Extensions
                             logger.LogInformation("mTLS Authentication SUCCEEDED for certificate: {Subject}", 
                                 context.ClientCertificate.Subject);
                             
-                            // Additional custom validation can be added here
                             if (mtlsSettings.ValidateClientCertificateIssuer)
                             {
-                                // Example: Validate specific issuer
-                                // if (!context.ClientCertificate.Issuer.Contains("Expected Issuer"))
-                                // {
-                                //     context.Fail("Certificate issuer not trusted");
-                                // }
+                                var issuer = context.ClientCertificate.Issuer;
+                                if (!mtlsSettings.IsIssuerAllowed(issuer))
+                                {
+                                    logger.LogError(
+                                        "mTLS: Certificate issuer '{Issuer}' is not in the allowed list. Allowed: [{Allowed}]",
+                                        issuer,
+                                        string.Join(", ", mtlsSettings.AllowedIssuers ?? new List<string>()));
+                                    context.Fail("Certificate issuer not trusted");
+                                }
                             }
 
                             return Task.CompletedTask;

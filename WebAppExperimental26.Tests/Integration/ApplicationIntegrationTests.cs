@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WebAppExperimental26.Models.Settings;
@@ -8,12 +9,13 @@ namespace WebAppExperimental26.Tests.Integration
     /// <summary>
     /// Integration tests for the entire application.
     /// These tests start the full web application and test end-to-end scenarios.
+    /// Authentication is disabled in the test environment (no Azure AD configured).
     /// </summary>
-    public class ApplicationIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    public class ApplicationIntegrationTests : IClassFixture<TestWebApplicationFactory>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly TestWebApplicationFactory _factory;
 
-        public ApplicationIntegrationTests(WebApplicationFactory<Program> factory)
+        public ApplicationIntegrationTests(TestWebApplicationFactory factory)
         {
             _factory = factory;
         }
@@ -154,6 +156,24 @@ namespace WebAppExperimental26.Tests.Integration
                     options.EnableBlobStorage = false;
                 });
             });
+        }
+    }
+
+    /// <summary>
+    /// Application factory used by <see cref="ApplicationIntegrationTests"/>.
+    /// Disables authentication and cloud services that are not available in CI.
+    /// </summary>
+    public class TestWebApplicationFactory : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+        {
+            // UseSetting overrides configuration values before Program.cs reads them.
+            builder.UseSetting("FeatureFlags:EnableAzureAd", "false");
+            builder.UseSetting("FeatureFlags:EnableAuthorization", "false");
+            builder.UseSetting("FeatureFlags:EnableCosmosDb", "false");
+            builder.UseSetting("FeatureFlags:EnableBlobStorage", "false");
+            builder.UseSetting("FeatureFlags:EnableNonceServices", "false");
+            builder.UseSetting("FeatureFlags:EnableKeyVault", "false");
         }
     }
 }

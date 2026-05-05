@@ -11,11 +11,11 @@ namespace WebAppExperimental26.Tests.Integration
     /// Integration tests for mTLS functionality
     /// Tests the full mTLS configuration and integration with Kestrel
     /// </summary>
-    public class MtlsIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    public class MtlsIntegrationTests : IClassFixture<TestWebApplicationFactory>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly TestWebApplicationFactory _factory;
 
-        public MtlsIntegrationTests(WebApplicationFactory<Program> factory)
+        public MtlsIntegrationTests(TestWebApplicationFactory factory)
         {
             _factory = factory;
         }

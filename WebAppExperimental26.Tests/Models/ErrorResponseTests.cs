@@ -9,18 +9,18 @@ namespace WebAppExperimental26.Tests.Models
         {
             // Arrange
             var errorMessage = "Test error message";
-            var statusCode = 400;
+            var errorNumber = 400;
 
             // Act
             var errorResponse = new ErrorResponse
             {
-                Message = errorMessage,
-                StatusCode = statusCode
+                ErrorMessage = errorMessage,
+                ErrorNumber = errorNumber
             };
 
             // Assert
-            errorResponse.Message.Should().Be(errorMessage);
-            errorResponse.StatusCode.Should().Be(statusCode);
+            errorResponse.ErrorMessage.Should().Be(errorMessage);
+            errorResponse.ErrorNumber.Should().Be(errorNumber);
         }
 
         [Fact]
@@ -30,8 +30,8 @@ namespace WebAppExperimental26.Tests.Models
             var errorResponse = new ErrorResponse();
 
             // Assert
-            errorResponse.Message.Should().BeNull();
-            errorResponse.StatusCode.Should().Be(0);
+            errorResponse.ErrorMessage.Should().BeNull();
+            errorResponse.ErrorNumber.Should().Be(0);
         }
 
         [Theory]
@@ -40,32 +40,32 @@ namespace WebAppExperimental26.Tests.Models
         [InlineData(403, "Forbidden")]
         [InlineData(404, "Not Found")]
         [InlineData(500, "Internal Server Error")]
-        public void StatusCode_ShouldAcceptCommonHttpCodes(int statusCode, string message)
+        public void ErrorNumber_ShouldAcceptCommonHttpCodes(int errorNumber, string message)
         {
             // Act
             var errorResponse = new ErrorResponse
             {
-                StatusCode = statusCode,
-                Message = message
+                ErrorNumber = errorNumber,
+                ErrorMessage = message
             };
 
             // Assert
-            errorResponse.StatusCode.Should().Be(statusCode);
-            errorResponse.Message.Should().Be(message);
+            errorResponse.ErrorNumber.Should().Be(errorNumber);
+            errorResponse.ErrorMessage.Should().Be(message);
         }
 
         [Fact]
-        public void Message_CanBeEmpty()
+        public void ErrorMessage_CanBeEmpty()
         {
             // Act
             var errorResponse = new ErrorResponse
             {
-                Message = string.Empty,
-                StatusCode = 400
+                ErrorMessage = string.Empty,
+                ErrorNumber = 400
             };
 
             // Assert
-            errorResponse.Message.Should().BeEmpty();
+            errorResponse.ErrorMessage.Should().BeEmpty();
         }
     }
 }
