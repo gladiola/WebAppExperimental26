@@ -9,9 +9,9 @@
 
 | # | Area | Severity |
 |---|------|----------|
-| 1 | AES-GCM IV reuse in nonce generation | 🔴 Critical |
-| 2 | Nonce logged in plaintext | 🔴 Critical |
-| 3 | Hardcoded fallback nonce strings | 🔴 Critical |
+| 1 | AES-GCM IV reuse in nonce generation | 🔴 Critical ✅ |
+| 2 | Nonce logged in plaintext | 🔴 Critical ✅ |
+| 3 | Hardcoded fallback nonce strings | 🔴 Critical ✅ |
 | 4 | Non-thread-safe global nonce dictionary | 🟠 High |
 | 5 | mTLS issuer validation commented out | 🟠 High |
 | 6 | mTLS revocation checking off by default | 🟠 High |
@@ -33,7 +33,7 @@
 
 ## 🔴 Critical
 
-### 1. AES-GCM IV Reuse — Nonce Generation is Cryptographically Broken
+### 1. AES-GCM IV Reuse — Nonce Generation is Cryptographically Broken ✅ Fixed in commit 45ae31b
 
 **Files:** `Models/Main_Objects/Nonce.cs`, `Services/NonceRefresherService.cs`
 
@@ -43,7 +43,7 @@ The fix is straightforward — CSP nonces do not need encryption at all. A CSP n
 
 ---
 
-### 2. Nonce Values Logged in Plaintext
+### 2. Nonce Values Logged in Plaintext ✅ Fixed in commit bb6f27a
 
 **Files:** `Services/NonceMiddleware.cs` (line 31), `Services/NonceRefresherService.cs` (line 82)
 
@@ -57,7 +57,7 @@ Anyone with access to the logs gains a valid nonce and can trivially bypass the 
 
 ---
 
-### 3. Hardcoded Fallback Nonces
+### 3. Hardcoded Fallback Nonces ✅ Fixed in commit 11cc9f7
 
 **File:** `Services/OptimizedNonceMiddleware.cs` (lines 53, 78, 92)
 

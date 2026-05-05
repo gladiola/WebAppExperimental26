@@ -45,12 +45,15 @@ namespace WebAppExperimental26.Services
             // Check if this request should skip nonce generation
             if (ShouldIgnoreRequest(context.Request))
             {
-                // Use existing nonce from catalog (or placeholder for static content)
+                // Use existing nonce from catalog (or a fresh random nonce for static content).
+                // SECURITY: Never fall back to a predictable hardcoded string — hardcoded
+                // nonce literals committed to source are known to attackers and allow CSP bypass
+                // even during error conditions (Critical #3).
                 var existingNonce = _nonceCatalogService.GetANonce("CSPNonce");
                 if (string.IsNullOrEmpty(existingNonce))
                 {
-                    // First request before any nonce generated - use safe placeholder
-                    existingNonce = "bootstrap-nonce-placeholder";
+                    // First request before any nonce generated — produce a fresh random nonce.
+                    existingNonce = Nonce.GenerateSecureNonce();
                 }
 
                 context.Items["Nonce"] = existingNonce;
@@ -75,7 +78,8 @@ namespace WebAppExperimental26.Services
                 if (string.IsNullOrEmpty(nonce))
                 {
                     _logger.LogWarning("Nonce generation returned empty value for: {Path}", context.Request.Path);
-                    nonce = "fallback-nonce";
+                    // SECURITY: Never fall back to a predictable hardcoded string (Critical #3).
+                    nonce = Nonce.GenerateSecureNonce();
                 }
 
                 LoggingHelper.LogDataProcessingStatusServiceWork(_logger, caller, "",
@@ -88,8 +92,9 @@ namespace WebAppExperimental26.Services
             {
                 _logger.LogError(ex, "Error generating nonce for: {Path}", context.Request.Path);
 
-                // Use fallback nonce on error
-                context.Items["Nonce"] = "error-fallback-nonce";
+                // SECURITY: Never fall back to a predictable hardcoded string (Critical #3).
+                // Produce a fresh random nonce even in the error path.
+                context.Items["Nonce"] = Nonce.GenerateSecureNonce();
             }
 
             await _next(context);
