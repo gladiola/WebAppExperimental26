@@ -112,7 +112,7 @@ The `PerformOcspValidationAsync` method is explicitly a "template implementation
 
 ---
 
-### 8. Authentication and Authorization Disabled by Default ✅ Fixed in commit 
+### 8. Authentication and Authorization Disabled by Default ✅ Fixed in commit b392c47
 
 **File:** `appsettings.json` (lines 16–17)
 
@@ -125,7 +125,7 @@ The default configuration ships with no authentication or authorization. A devel
 
 ---
 
-### 9. Security Headers Applied After Routing/Auth
+### 9. Security Headers Applied After Routing/Auth ✅ Fixed in commit 
 
 **File:** `Program.cs` (lines 130–152)
 

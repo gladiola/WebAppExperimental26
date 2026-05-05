@@ -155,6 +155,19 @@ namespace WebAppExperimental26
             }
 
             app.UseHttpsRedirection();
+
+            // Security Middleware — must be first so every response (including 401/403
+            // short-circuits from auth) carries the security headers.
+            if (featureFlags.EnableCSP && featureFlags.EnableNonceServices)
+            {
+                await app.UseNonceAndSecurityHeadersAsync(logger, enabled: true);
+            }
+
+            if (featureFlags.EnableSecurityHeaders)
+            {
+                app.UseStandardSecurityHeaders(logger, enabled: true);
+            }
+
             app.UseRouting();
 
             if (featureFlags.EnableSession)
@@ -166,17 +179,6 @@ namespace WebAppExperimental26
             {
                 app.UseAuthentication();
                 app.UseAuthorization();
-            }
-
-            // Security Middleware
-            if (featureFlags.EnableCSP && featureFlags.EnableNonceServices)
-            {
-                await app.UseNonceAndSecurityHeadersAsync(logger, enabled: true);
-            }
-
-            if (featureFlags.EnableSecurityHeaders)
-            {
-                app.UseStandardSecurityHeaders(logger, enabled: true);
             }
 
             // Map endpoints

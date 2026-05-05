@@ -5,61 +5,57 @@ namespace WebAppExperimental26.Tests.Models
     public class DataProcessingStatusTests
     {
         [Fact]
-        public void AllStatuses_ShouldHaveUniqueIds()
+        public void AllStatuses_ShouldHaveUniqueValues()
         {
             // Arrange
-            var allStatuses = Enumeration.GetAll<DataProcessingStatus>();
+            var allStatuses = Enum.GetValues<DataProcessingStatus>();
 
             // Act
-            var uniqueIds = allStatuses.Select(s => s.Id).Distinct();
+            var uniqueValues = allStatuses.Select(s => (int)s).Distinct();
 
             // Assert
-            uniqueIds.Should().HaveCount(allStatuses.Count());
+            uniqueValues.Should().HaveCount(allStatuses.Length);
         }
 
         [Fact]
         public void AllStatuses_ShouldHaveUniqueNames()
         {
             // Arrange
-            var allStatuses = Enumeration.GetAll<DataProcessingStatus>();
+            var allStatuses = Enum.GetValues<DataProcessingStatus>();
 
             // Act
-            var uniqueNames = allStatuses.Select(s => s.Name).Distinct();
+            var uniqueNames = allStatuses.Select(s => s.ToString()).Distinct();
 
             // Assert
-            uniqueNames.Should().HaveCount(allStatuses.Count());
+            uniqueNames.Should().HaveCount(allStatuses.Length);
         }
 
         [Fact]
-        public void Success_ShouldHaveCorrectValues()
+        public void Success_ShouldExist()
         {
             // Assert
-            DataProcessingStatus.Success.Name.Should().Be("Success");
-            DataProcessingStatus.Success.Id.Should().BeGreaterThan(0);
+            DataProcessingStatus.Success.ToString().Should().Be("Success");
         }
 
         [Fact]
-        public void Failure_ShouldHaveCorrectValues()
+        public void Failure_ShouldExist()
         {
             // Assert
-            DataProcessingStatus.Failure.Name.Should().Be("Failure");
-            DataProcessingStatus.Failure.Id.Should().BeGreaterThan(0);
+            DataProcessingStatus.Failure.ToString().Should().Be("Failure");
         }
 
         [Fact]
-        public void Info_ShouldHaveCorrectValues()
+        public void Info_ShouldExist()
         {
             // Assert
-            DataProcessingStatus.Info.Name.Should().Be("Info");
-            DataProcessingStatus.Info.Id.Should().BeGreaterThan(0);
+            DataProcessingStatus.Info.ToString().Should().Be("Info");
         }
 
         [Fact]
-        public void Exception_ShouldHaveCorrectValues()
+        public void Exception_ShouldExist()
         {
             // Assert
-            DataProcessingStatus.Exception.Name.Should().Be("Exception");
-            DataProcessingStatus.Exception.Id.Should().BeGreaterThan(0);
+            DataProcessingStatus.Exception.ToString().Should().Be("Exception");
         }
 
         [Fact]
