@@ -137,7 +137,7 @@ az webapp create --name MyWebApp26 --resource-group MyResourceGroup \
 ### 2. Register an Azure AD Application
 
 In the [Azure Portal](https://portal.azure.com):
-1. Navigate to **Azure Active Directory → App registrations → New registration**.
+1. Navigate to **Microsoft Entra ID → App registrations → New registration**.
 2. Set the redirect URI to `https://<your-app>.azurewebsites.net/signin-oidc`.
 3. Under **Certificates & secrets**, create a client secret and copy the value.
 4. Note the **Tenant ID** and **Client ID** from the Overview blade.
@@ -209,13 +209,13 @@ Then set `FeatureFlags__EnableMtls=true` in Application Settings.
 
 ## Installation – OpenBSD Server communicating with Azure Services
 
-> **Important:** .NET 9 does **not** have an official Microsoft build for OpenBSD. The instructions below use a **Linux-compatible container** (via [Podman](https://podman.io/), which is available in OpenBSD's package tree as `podman` or via [Lima](https://github.com/lima-vm/lima)) to run the ASP.NET Core 9 application on OpenBSD while communicating with Azure services over HTTPS.
+> **Important:** .NET 9 does **not** have an official Microsoft build for OpenBSD. The instructions below use a **Linux-compatible container** (via [Podman](https://podman.io/), which is available in OpenBSD's package tree) to run the ASP.NET Core 9 application on OpenBSD while communicating with Azure services over HTTPS.
 
 ### 1. Install Prerequisites on OpenBSD
 
 ```sh
 # As root
-pkg_add podman   # or: pkg_add docker (if available for your OpenBSD version)
+pkg_add podman
 pkg_add curl git
 ```
 
