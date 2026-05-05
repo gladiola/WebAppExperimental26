@@ -69,7 +69,7 @@ namespace WebAppExperimental26.Services
            // string preamble = "default-src 'none'; script-src 'self' ";
             string preamble = "script-src ";
             string conclusion = " ; connect-src 'self'; img-src 'self'; style-src 'self'; frame-ancestors 'self'; form-action 'self';";
-            string fullFilePath = string.Empty;
+            string fullFilePath;
             string? line;
 
             CSPScriptHashes.Append(preamble);

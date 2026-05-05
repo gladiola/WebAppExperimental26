@@ -41,7 +41,7 @@ namespace WebAppExperimental26.Services
         {
             string caller = "OptimizedNonceMiddleware.InvokeAsync()";
             string existingNonce;
-            string nonce;
+            string nonce = string.Empty;
             Interlocked.Increment(ref _requestCount);
 
             // Check if this request should skip nonce generation
@@ -121,7 +121,6 @@ namespace WebAppExperimental26.Services
             var path = request.Path.Value;
             string extension;
             bool result;
-            bool foundIgnorePath;
 
             if (string.IsNullOrEmpty(path))
             {
@@ -129,23 +128,19 @@ namespace WebAppExperimental26.Services
             }
             else
             {
-                foundIgnorePath = false;
+                result = false;
 
                 // Ignore requests to static file paths
                 foreach (var ignorePath in IgnorePaths)
                 {
                     if (path.StartsWith(ignorePath, StringComparison.OrdinalIgnoreCase))
                     {
-                        foundIgnorePath = true;
+                        result = true;
                         break;
                     }
                 }
 
-                if (foundIgnorePath)
-                {
-                    result = true;
-                }
-                else if (path.Contains('.'))
+                if (!result && path.Contains('.'))
                 {
                     // Ignore requests with file extensions (static files)
                     // BUT allow .cshtml (Razor pages) and pages without extensions
@@ -162,18 +157,14 @@ namespace WebAppExperimental26.Services
                         result = true;
                     }
                 }
-                else if (path.Equals("/healthz", StringComparison.OrdinalIgnoreCase) ||
+                else if (!result &&
+                    (path.Equals("/healthz", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("/ready", StringComparison.OrdinalIgnoreCase) ||
-                    path.Equals("/alive", StringComparison.OrdinalIgnoreCase))
+                    path.Equals("/alive", StringComparison.OrdinalIgnoreCase)))
                 {
                     // Ignore Azure health check probes
                     result = true;
-                }
-                else
-                {
-                    // This is a page request - generate nonce
-                    result = false;
                 }
             }
 
