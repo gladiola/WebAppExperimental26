@@ -79,7 +79,7 @@ private static readonly Dictionary<string, Nonce> _nonceCollection = new Diction
 
 ---
 
-### 5. mTLS Certificate Issuer Validation is Stubbed Out ✅ Fixed in commit 
+### 5. mTLS Certificate Issuer Validation is Stubbed Out ✅ Fixed in commit fd3d4fb
 
 **File:** `Extensions/ServiceCollectionExtensions.cs` (lines 305–313)
 
@@ -96,7 +96,7 @@ With mTLS enabled, any client certificate from any issuer (that chains to a trus
 
 ---
 
-### 6. mTLS Certificate Revocation Checking Disabled by Default
+### 6. mTLS Certificate Revocation Checking Disabled by Default ✅ Fixed in commit 
 
 **Files:** `Models/Settings/MtlsSettings.cs` (line 26), `appsettings.template.json`
 

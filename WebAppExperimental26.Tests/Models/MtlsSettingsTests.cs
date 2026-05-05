@@ -18,7 +18,7 @@ namespace WebAppExperimental26.Tests.Models
             settings.RequireClientCertificate.Should().BeTrue("client certificates should be required by default for security");
             settings.AllowCertificateChains.Should().BeTrue("chained certificates should be allowed by default");
             settings.AllowSelfSignedCertificates.Should().BeFalse("self-signed certificates should not be allowed by default");
-            settings.CheckCertificateRevocation.Should().BeFalse("revocation check is disabled by default for performance");
+            settings.CheckCertificateRevocation.Should().BeTrue("revocation check must be enabled by default for security (fix #6)");
             settings.ValidateClientCertificateIssuer.Should().BeTrue("issuer validation should be enabled by default");
             settings.ClientCertificateName.Should().BeNull("certificate name is optional");
         }
@@ -77,13 +77,14 @@ namespace WebAppExperimental26.Tests.Models
         }
 
         [Fact]
-        public void CheckCertificateRevocation_DefaultsToFalse()
+        public void CheckCertificateRevocation_DefaultsToTrue()
         {
             // Act
             var settings = new MtlsSettings();
 
-            // Assert
-            settings.CheckCertificateRevocation.Should().BeFalse();
+            // Assert — revocation must be on by default (security fix #6)
+            settings.CheckCertificateRevocation.Should().BeTrue(
+                "revocation checking must default to true so that revoked certificates cannot authenticate");
         }
 
         [Fact]

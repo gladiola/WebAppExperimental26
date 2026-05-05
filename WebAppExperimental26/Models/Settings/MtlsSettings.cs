@@ -23,7 +23,7 @@ namespace WebAppExperimental26.Models.Settings
         /// <summary>
         /// Perform certificate revocation check
         /// </summary>
-        public bool CheckCertificateRevocation { get; set; } = false;
+        public bool CheckCertificateRevocation { get; set; } = true;
 
         /// <summary>
         /// Name of the client certificate in Azure Key Vault (optional)
