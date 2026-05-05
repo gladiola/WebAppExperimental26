@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using System.Text;
 using WebAppExperimental26.Models.Settings;
@@ -8,6 +9,29 @@ namespace WebAppExperimental26.Extensions
 {
     public static class ApplicationBuilderExtensions
     {
+        /// <summary>
+        /// Enable request localization middleware (culture negotiation via Accept-Language, query string, and cookie)
+        /// </summary>
+        public static IApplicationBuilder UseLocalizationConfiguration(
+            this IApplicationBuilder app,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("Request localization middleware is DISABLED");
+            }
+            else
+            {
+                var localizationOptions = app.ApplicationServices
+                    .GetRequiredService<IOptions<RequestLocalizationOptions>>().Value;
+                app.UseRequestLocalization(localizationOptions);
+                logger.LogInformation("Request localization middleware enabled");
+            }
+
+            return app;
+        }
+
         /// <summary>
         /// Configure nonce middleware and CSP headers
         /// </summary>
