@@ -125,7 +125,7 @@ The default configuration ships with no authentication or authorization. A devel
 
 ---
 
-### 9. Security Headers Applied After Routing/Auth ✅ Fixed in commit 
+### 9. Security Headers Applied After Routing/Auth ✅ Fixed in commit 016e57c
 
 **File:** `Program.cs` (lines 130–152)
 
