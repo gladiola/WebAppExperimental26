@@ -435,6 +435,7 @@ namespace WebAppExperimental26.Services
             logger.LogInformation("{0} {1} {2}{3} - {4}", DateTime.UtcNow, caller, contextInfo, status, message);
         }
 
+
         // ------------------------------------------------------------------ Call-chain tracking
 
         /// <summary>
@@ -443,7 +444,8 @@ namespace WebAppExperimental26.Services
         public const string CallChainKey = "LoggingHelper_CallChain";
 
         /// <summary>
-        /// Key used to store the per-request short request ID in <see cref="HttpContext.Items"/>.
+        /// Key used to store the per-request trace identifier in <see cref="HttpContext.Items"/>
+        /// so downstream components can reference it without needing the full HttpContext.
         /// </summary>
         public const string RequestIdKey = "LoggingHelper_RequestId";
 
