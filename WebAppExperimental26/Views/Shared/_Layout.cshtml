@@ -202,6 +202,13 @@
                                         <button type="submit" class="dropdown-item">普通话</button>
                                     </form>
                                 </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="ga-IE" />
+                                        <button type="submit" class="dropdown-item">Gaeilge</button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
                     </ul>
