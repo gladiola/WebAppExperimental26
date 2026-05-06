@@ -66,7 +66,37 @@ Configuración en la sección `GcpIdentity`: `ClientId`, `ClientSecret` (almacen
 Las sesiones utilizan una caché de memoria distribuida en proceso con un **tiempo de espera de inactividad de 30 minutos**. Las cookies de sesión se configuran como `HttpOnly`, `Secure = Always` y `SameSite = Strict`.
 
 ### Localización
-La aplicación admite **11 idiomas**: en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU y ar-SA. El árabe incluye cambio automático de diseño RTL.
+La aplicación admite **25 idiomas** con archivos de recursos `.resx` por vista. La cultura activa se resuelve con `RequestLocalizationOptions` (cabecera Accept-Language, query string o cookie), y los usuarios pueden cambiar idioma desde el selector de la barra de navegación.
+
+| Etiqueta de cultura | Idioma |
+|---|---|
+| `en-US` | English (Estados Unidos) — predeterminado |
+| `de-DE` | Deutsch (alemán) |
+| `es-ES` | Español |
+| `fr-FR` | Français (francés) |
+| `pt-PT` | Português (portugués) |
+| `it-IT` | Italiano |
+| `zh-HK` | 廣東話 (cantonés — chino tradicional de Hong Kong) |
+| `ko-KR` | 한국어 (coreano) |
+| `hi-IN` | हिन्दी (hindi) |
+| `ru-RU` | Русский (ruso) |
+| `ar-SA` | العربية (árabe — diseño de derecha a izquierda) |
+| `sw-KE` | Kiswahili (suajili) |
+| `ja-JP` | 日本語 (japonés) |
+| `ht-HT` | Kreyòl ayisyen (criollo haitiano) |
+| `haw-US` | ʻŌlelo Hawaiʻi (hawaiano) |
+| `sm-WS` | Gagana Samoa (samoano) |
+| `mi-NZ` | Te Reo Māori (maorí) |
+| `af-ZA` | Afrikaans |
+| `nl-NL` | Nederlands (neerlandés) |
+| `ha-NG` | Hausa |
+| `am-ET` | አማርኛ (amhárico) |
+| `yo-NG` | Yorùbá (yoruba) |
+| `bn-BD` | বাংলা (bengalí) |
+| `zh-CN` | 普通话 (chino mandarín simplificado) |
+| `ga-IE` | Gaeilge (irlandés) |
+
+El diseño RTL se activa automáticamente cuando se selecciona árabe: la etiqueta `<html>` recibe `dir="rtl"` y el atributo `lang` usa la etiqueta BCP-47 completa (por ejemplo, `ar-SA`).
 
 ### Registro seguro para PII
 `LoggingHelper` hashea la información de identificación personal en la salida de registro usando HMAC-SHA256. Se puede proporcionar una clave de 32 bytes estable a través de `Logging:PiiHmacKey`.
@@ -80,7 +110,7 @@ Todos los subsistemas principales están controlados por flags booleanas en `app
 | Flag | Valor predeterminado | Descripción |
 |---|---|---|
 | `EnableSession` | `true` | Sesión del servidor y cookie de sesión |
-| `EnableLocalization` | `true` | Soporte multilingüe (11 idiomas) |
+| `EnableLocalization` | `true` | Soporte multilingüe (en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN, ga-IE) |
 | `EnableAzureAd` | `true` | Autenticación Azure AD / OpenID Connect |
 | `EnableAuthorization` | `true` | Políticas de autorización a nivel de ruta |
 | `EnableKeyVault` | `false` | Cargar certificado TLS del servidor desde Azure Key Vault |
