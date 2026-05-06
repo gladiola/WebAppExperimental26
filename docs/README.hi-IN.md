@@ -1,6 +1,6 @@
 # WebAppExperimental26
 
-Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Azure Key Vault प्रमाण-पत्र प्रबंधन, Azure Cosmos DB, Azure Blob Storage, और nonce-आधारित Content Security Policy के साथ सुदृढ़ HTTP सुरक्षा परत वाला ASP.NET Core 9 Razor Pages वेब अनुप्रयोग।
+Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Azure Key Vault प्रमाण-पत्र प्रबंधन, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, GCP Secret Manager, GCP Firestore, और nonce-आधारित Content Security Policy के साथ सुदृढ़ HTTP सुरक्षा परत वाला ASP.NET Core 9 Razor Pages वेब अनुप्रयोग।
 
 ---
 
@@ -40,6 +40,18 @@ Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Az
 ### Azure Cosmos DB
 सक्षम होने पर, अनुप्रयोग `database.ReadAsync()` कॉल करके स्टार्टअप पर Cosmos DB कनेक्शन सत्यापित करता है।
 
+### AWS Secrets Manager
+सक्षम होने पर, `AwsSecretsManagerOperationsService` AWS Secrets Manager से सीक्रेट और सर्टिफिकेट प्राप्त करता है। `AwsSecretsManager` अनुभाग में `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName` और `AccessKeyId`/`SecretAccessKey` क्रेडेंशियल के साथ कॉन्फ़िगरेशन।
+
+### Amazon DynamoDB
+सक्षम होने पर, `AwsDynamoDbService` स्टार्टअप पर DynamoDB तालिका कनेक्टिविटी सत्यापित करता है। `AwsDynamoDb` अनुभाग में `Region`, `TableName` और `AccessKeyId`/`SecretAccessKey` क्रेडेंशियल के साथ कॉन्फ़िगरेशन।
+
+### GCP Secret Manager
+सक्षम होने पर, `GcpSecretManagerOperationsService` Google Cloud Secret Manager से सीक्रेट प्राप्त करता है। `GcpSecretManager` अनुभाग में `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId` और `CredentialFilePath` (वैकल्पिक, खाली होने पर ADC उपयोग करता है) के साथ कॉन्फ़िगरेशन।
+
+### GCP Firestore
+सक्षम होने पर, `GcpFirestoreService` स्टार्टअप पर Firestore क्लाइंट बनाता है। `GcpFirestore` अनुभाग में `ProjectId`, `DatabaseId` (डिफ़ॉल्ट: "(default)"), `CollectionName` और `CredentialFilePath` (वैकल्पिक) के साथ कॉन्फ़िगरेशन।
+
 ### सुरक्षित सत्र प्रबंधन
 सत्र **30 मिनट के निष्क्रियता टाइमआउट** के साथ इन-प्रोसेस वितरित मेमोरी कैश का उपयोग करते हैं। सत्र कुकीज़ `HttpOnly`, `Secure = Always` और `SameSite = Strict` के रूप में कॉन्फ़िगर की जाती हैं।
 
@@ -67,6 +79,10 @@ Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Az
 | `EnableSecurityHeaders` | `true` | मानक HTTP सुरक्षा हेडर संलग्न करें |
 | `EnableBlobStorage` | `false` | Azure Blob Storage सेवा |
 | `EnableCosmosDb` | `false` | Azure Cosmos DB सेवा |
+| `EnableAwsSecretsManager` | `false` | AWS Secrets Manager स्टब |
+| `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableGcpSecretManager` | `false` | GCP Secret Manager स्टब |
+| `EnableGcpFirestore` | `false` | Google Cloud Firestore |
 | `EnableMtls` | `false` | क्लाइंट TLS सर्टिफिकेट की आवश्यकता |
 | `EnableOcspValidation` | `false` | OCSP सर्टिफिकेट निरसन जाँच (स्टब) |
 
@@ -79,6 +95,8 @@ Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Az
 3. **Azure Cosmos DB खाता** (वैकल्पिक)।
 4. **Azure Blob Storage खाता** (वैकल्पिक)।
 5. **.NET 9 SDK / रनटाइम** – संस्करण 9.0 या उसके बाद का।
+6. **AWS क्रेडेंशियल** (IAM उपयोगकर्ता/भूमिका के साथ `secretsmanager` और `dynamodb` अनुमतियाँ) – `EnableAwsSecretsManager` या `EnableAwsDynamoDb` सक्षम होने पर आवश्यक।
+7. **GCP सेवा खाता या ADC** (`secretmanager` और `datastore` अनुमतियों के साथ) – `EnableGcpSecretManager` या `EnableGcpFirestore` सक्षम होने पर आवश्यक।
 
 ---
 
@@ -284,6 +302,10 @@ pfctl -f /etc/pf.conf
 | Azure Key Vault | `<vault-name>.vault.azure.net` |
 | Azure Cosmos DB | `<account>.documents.azure.com` |
 | Azure Blob Storage | `<account>.blob.core.windows.net` |
+| AWS Secrets Manager | `secretsmanager.REGION.amazonaws.com` |
+| Amazon DynamoDB | `dynamodb.REGION.amazonaws.com` |
+| GCP Secret Manager | `secretmanager.googleapis.com` |
+| GCP Firestore | `firestore.googleapis.com` |
 
 कंटेनर शुरू करने से पहले connectivity परीक्षण करें:
 
@@ -306,6 +328,10 @@ curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
 | `NonceEncryption` | `Key`, `IV` | Nonce एन्क्रिप्शन के लिए 32-बाइट कुंजी और 16-बाइट IV (base64) |
 | `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage कनेक्शन |
 | `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB कनेक्शन |
+| `AwsSecretsManager` | `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName`, `AccessKeyId`, `SecretAccessKey` | AWS Secrets Manager |
+| `AwsDynamoDb` | `Region`, `TableName`, `AccessKeyId`, `SecretAccessKey` | Amazon DynamoDB |
+| `GcpSecretManager` | `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId`, `CredentialFilePath` | GCP Secret Manager |
+| `GcpFirestore` | `ProjectId`, `DatabaseId`, `CollectionName`, `CredentialFilePath` | GCP Firestore |
 | `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP सत्यापन (स्टब) |
 | `Logging` | `PiiHmacKey` | लॉग में PII हैशिंग के लिए 32-बाइट base64 HMAC कुंजी |
 
@@ -322,7 +348,13 @@ dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
 dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
 dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
 dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+dotnet user-secrets set "AwsSecretsManager:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsSecretsManager:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
+dotnet user-secrets set "AwsDynamoDb:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsDynamoDb:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
 ```
+
+> GCP के लिए, सेवा खाता JSON फ़ाइल के पथ पर `GOOGLE_APPLICATION_CREDENTIALS` पर्यावरण चर सेट करें या स्थानीय विकास के लिए `gcloud auth application-default login` चलाएं।
 
 ---
 
@@ -349,3 +381,7 @@ dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
 - OCSP सत्यापन कार्यान्वयन एक **स्टब** है जो सभी सर्टिफिकेट अस्वीकार करता है। प्रोडक्शन में `EnableOcspValidation` सक्षम करने से पहले `PerformOcspValidationAsync` को बदलें।
 - Nonce मान **कभी भी लॉग नहीं किए जाते**।
 - `Server` प्रतिक्रिया हेडर को `webserver` पर मास्क किया जाता है।
+- **AWS या GCP क्रेडेंशियल्स को कभी भी सोर्स कंट्रोल में स्टोर न करें।** Environment variables या secrets manager का उपयोग करें।
+- AWS और GCP कार्यान्वयन **स्टब** हैं जिन्हें प्रोडक्शन उपयोग से पहले पूर्ण कार्यान्वयन की आवश्यकता है।
+- AWS के लिए, जहाँ संभव हो हार्डकोड access keys के बजाय IAM roles को प्राथमिकता दें।
+- GCP के लिए, स्पष्ट service account files के बजाय Application Default Credentials (ADC) को प्राथमिकता दें।

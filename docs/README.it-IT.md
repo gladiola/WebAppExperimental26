@@ -1,6 +1,6 @@
 # WebAppExperimental26
 
-Un'applicazione web ASP.NET Core 9 Razor Pages con autenticazione Azure AD, TLS mutuale (mTLS), gestione dei certificati tramite Azure Key Vault, Azure Cosmos DB, Azure Blob Storage e un livello di sicurezza HTTP rafforzato con Content Security Policy basata su nonce.
+Un'applicazione web ASP.NET Core 9 Razor Pages con autenticazione Azure AD, TLS mutuale (mTLS), gestione dei certificati tramite Azure Key Vault, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, GCP Secret Manager, GCP Firestore e un livello di sicurezza HTTP rafforzato con Content Security Policy basata su nonce.
 
 ---
 
@@ -40,6 +40,18 @@ Quando abilitato, `BlobSettingsService` fornisce un servizio Scoped supportato d
 ### Azure Cosmos DB
 Quando abilitato, l'applicazione verifica la connessione a Cosmos DB all'avvio chiamando `database.ReadAsync()`.
 
+### AWS Secrets Manager
+Quando abilitato, `AwsSecretsManagerOperationsService` recupera segreti e certificati da AWS Secrets Manager. Configurazione nella sezione `AwsSecretsManager` con i parametri `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName` e le credenziali `AccessKeyId`/`SecretAccessKey`.
+
+### Amazon DynamoDB
+Quando abilitato, `AwsDynamoDbService` verifica la connettività alla tabella DynamoDB all'avvio. Configurazione nella sezione `AwsDynamoDb` con i parametri `Region`, `TableName` e le credenziali `AccessKeyId`/`SecretAccessKey`.
+
+### GCP Secret Manager
+Quando abilitato, `GcpSecretManagerOperationsService` recupera segreti da Google Cloud Secret Manager. Configurazione nella sezione `GcpSecretManager` con i parametri `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId` e `CredentialFilePath` (opzionale, usa ADC se vuoto).
+
+### GCP Firestore
+Quando abilitato, `GcpFirestoreService` costruisce il client Firestore all'avvio. Configurazione nella sezione `GcpFirestore` con i parametri `ProjectId`, `DatabaseId` (predefinito: "(default)"), `CollectionName` e `CredentialFilePath` (opzionale).
+
 ### Gestione sicura delle sessioni
 Le sessioni utilizzano una cache di memoria distribuita in-process con un **timeout di inattività di 30 minuti**. I cookie di sessione sono configurati come `HttpOnly`, `Secure = Always` e `SameSite = Strict`.
 
@@ -67,6 +79,10 @@ Tutti i principali sottosistemi sono controllati da flag booleani in `appsetting
 | `EnableSecurityHeaders` | `true` | Aggiungere le intestazioni di sicurezza HTTP standard |
 | `EnableBlobStorage` | `false` | Servizio Azure Blob Storage |
 | `EnableCosmosDb` | `false` | Servizio Azure Cosmos DB |
+| `EnableAwsSecretsManager` | `false` | Stub AWS Secrets Manager |
+| `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableGcpSecretManager` | `false` | Stub GCP Secret Manager |
+| `EnableGcpFirestore` | `false` | Google Cloud Firestore |
 | `EnableMtls` | `false` | Richiedere certificati TLS client |
 | `EnableOcspValidation` | `false` | Verifica revoca OCSP (stub) |
 
@@ -79,6 +95,8 @@ Tutti i principali sottosistemi sono controllati da flag booleani in `appsetting
 3. **Account Azure Cosmos DB** (opzionale).
 4. **Account Azure Blob Storage** (opzionale).
 5. **.NET 9 SDK / Runtime** – versione 9.0 o successiva.
+6. **Credenziali AWS** (utente/ruolo IAM con permessi `secretsmanager` e `dynamodb`) – necessarie quando `EnableAwsSecretsManager` o `EnableAwsDynamoDb` sono abilitati.
+7. **Account di servizio GCP o ADC** (con permessi `secretmanager` e `datastore`) – necessari quando `EnableGcpSecretManager` o `EnableGcpFirestore` sono abilitati.
 
 ---
 
@@ -284,8 +302,10 @@ I seguenti endpoint del servizio Azure devono essere raggiungibili dall'host Ope
 | Azure Key Vault | `<vault-name>.vault.azure.net` |
 | Azure Cosmos DB | `<account>.documents.azure.com` |
 | Azure Blob Storage | `<account>.blob.core.windows.net` |
-
-Testare la connettività prima di avviare il contenitore:
+| AWS Secrets Manager | `secretsmanager.REGION.amazonaws.com` |
+| Amazon DynamoDB | `dynamodb.REGION.amazonaws.com` |
+| GCP Secret Manager | `secretmanager.googleapis.com` |
+| GCP Firestore | `firestore.googleapis.com` |
 
 ```sh
 curl -I https://login.microsoftonline.com
@@ -306,6 +326,10 @@ Copiare `appsettings.template.json` in `appsettings.json` e sostituire tutti i v
 | `NonceEncryption` | `Key`, `IV` | Chiave a 32 byte e IV a 16 byte per la crittografia dei nonce (base64) |
 | `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Connessione Blob Storage |
 | `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Connessione Cosmos DB |
+| `AwsSecretsManager` | `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName`, `AccessKeyId`, `SecretAccessKey` | AWS Secrets Manager |
+| `AwsDynamoDb` | `Region`, `TableName`, `AccessKeyId`, `SecretAccessKey` | Amazon DynamoDB |
+| `GcpSecretManager` | `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId`, `CredentialFilePath` | GCP Secret Manager |
+| `GcpFirestore` | `ProjectId`, `DatabaseId`, `CollectionName`, `CredentialFilePath` | GCP Firestore |
 | `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | Validazione OCSP (stub) |
 | `Logging` | `PiiHmacKey` | Chiave HMAC base64 a 32 byte per l'hashing dei dati PII nei log |
 
@@ -322,7 +346,13 @@ dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
 dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
 dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
 dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+dotnet user-secrets set "AwsSecretsManager:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsSecretsManager:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
+dotnet user-secrets set "AwsDynamoDb:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsDynamoDb:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
 ```
+
+> Per GCP, impostare la variabile d'ambiente `GOOGLE_APPLICATION_CREDENTIALS` sul percorso del file JSON dell'account di servizio, oppure eseguire `gcloud auth application-default login` per lo sviluppo locale.
 
 ---
 
@@ -349,3 +379,7 @@ La directory `SupportingScripts/` contiene utilità PowerShell:
 - L'implementazione della validazione OCSP è uno **stub** che rifiuta tutti i certificati. Sostituire `PerformOcspValidationAsync` prima di abilitare `EnableOcspValidation` in produzione.
 - I valori nonce non vengono **mai registrati** nei log.
 - L'intestazione di risposta `Server` è mascherata con `webserver`.
+- **Non salvare mai le credenziali AWS o GCP nel controllo del codice sorgente.** Usare le variabili d'ambiente o un gestore di segreti.
+- Le implementazioni AWS e GCP sono **stub** che richiedono un'implementazione completa prima dell'uso in produzione.
+- Per AWS, preferire i ruoli IAM alle chiavi di accesso hardcoded ove possibile.
+- Per GCP, preferire l'Application Default Credentials (ADC) ai file di account di servizio espliciti.

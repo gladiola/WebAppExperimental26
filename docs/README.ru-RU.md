@@ -1,6 +1,6 @@
 # WebAppExperimental26
 
-Веб-приложение ASP.NET Core 9 Razor Pages с аутентификацией Azure AD, взаимным TLS (mTLS), управлением сертификатами через Azure Key Vault, Azure Cosmos DB, Azure Blob Storage и усиленным уровнем безопасности HTTP с политикой безопасности контента на основе nonce.
+Веб-приложение ASP.NET Core 9 Razor Pages с аутентификацией Azure AD, взаимным TLS (mTLS), управлением сертификатами через Azure Key Vault, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, GCP Secret Manager, GCP Firestore и усиленным уровнем безопасности HTTP с политикой безопасности контента на основе nonce.
 
 ---
 
@@ -40,6 +40,18 @@
 ### Azure Cosmos DB
 При включении приложение проверяет подключение к Cosmos DB при запуске, вызывая `database.ReadAsync()`.
 
+### AWS Secrets Manager
+При включении `AwsSecretsManagerOperationsService` получает секреты и сертификаты из AWS Secrets Manager. Конфигурация в разделе `AwsSecretsManager` с параметрами `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName` и учётными данными `AccessKeyId`/`SecretAccessKey`.
+
+### Amazon DynamoDB
+При включении `AwsDynamoDbService` проверяет подключение к таблице DynamoDB при запуске. Конфигурация в разделе `AwsDynamoDb` с параметрами `Region`, `TableName` и учётными данными `AccessKeyId`/`SecretAccessKey`.
+
+### GCP Secret Manager
+При включении `GcpSecretManagerOperationsService` получает секреты из Google Cloud Secret Manager. Конфигурация в разделе `GcpSecretManager` с параметрами `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId` и `CredentialFilePath` (необязательно, использует ADC если пусто).
+
+### GCP Firestore
+При включении `GcpFirestoreService` создаёт клиент Firestore при запуске. Конфигурация в разделе `GcpFirestore` с параметрами `ProjectId`, `DatabaseId` (по умолчанию: "(default)"), `CollectionName` и `CredentialFilePath` (необязательно).
+
 ### Безопасное управление сеансами
 Сеансы используют распределённый кэш в памяти с **30-минутным таймаутом простоя**. Куки сеанса настроены как `HttpOnly`, `Secure = Always` и `SameSite = Strict`.
 
@@ -67,6 +79,10 @@
 | `EnableSecurityHeaders` | `true` | Добавление стандартных заголовков безопасности HTTP |
 | `EnableBlobStorage` | `false` | Сервис Azure Blob Storage |
 | `EnableCosmosDb` | `false` | Сервис Azure Cosmos DB |
+| `EnableAwsSecretsManager` | `false` | AWS Secrets Manager (заглушка) |
+| `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableGcpSecretManager` | `false` | GCP Secret Manager (заглушка) |
+| `EnableGcpFirestore` | `false` | Google Cloud Firestore |
 | `EnableMtls` | `false` | Требование клиентских TLS-сертификатов |
 | `EnableOcspValidation` | `false` | Проверка отзыва сертификатов OCSP (заглушка) |
 
@@ -79,6 +95,8 @@
 3. **Учётная запись Azure Cosmos DB** (необязательно).
 4. **Учётная запись Azure Blob Storage** (необязательно).
 5. **.NET 9 SDK / Runtime** — версии 9.0 или выше.
+6. **Учётные данные AWS** (пользователь/роль IAM с разрешениями `secretsmanager` и `dynamodb`) — необходимы при включении `EnableAwsSecretsManager` или `EnableAwsDynamoDb`.
+7. **Сервисный аккаунт GCP или ADC** (с разрешениями `secretmanager` и `datastore`) — необходим при включении `EnableGcpSecretManager` или `EnableGcpFirestore`.
 
 ---
 
@@ -284,6 +302,10 @@ pfctl -f /etc/pf.conf
 | Azure Key Vault | `<vault-name>.vault.azure.net` |
 | Azure Cosmos DB | `<account>.documents.azure.com` |
 | Azure Blob Storage | `<account>.blob.core.windows.net` |
+| AWS Secrets Manager | `secretsmanager.REGION.amazonaws.com` |
+| Amazon DynamoDB | `dynamodb.REGION.amazonaws.com` |
+| GCP Secret Manager | `secretmanager.googleapis.com` |
+| GCP Firestore | `firestore.googleapis.com` |
 
 Проверьте подключение перед запуском контейнера:
 
@@ -306,6 +328,10 @@ curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
 | `NonceEncryption` | `Key`, `IV` | 32-байтный ключ и 16-байтный IV для шифрования nonce (base64) |
 | `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Подключение Blob Storage |
 | `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Подключение Cosmos DB |
+| `AwsSecretsManager` | `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName`, `AccessKeyId`, `SecretAccessKey` | AWS Secrets Manager |
+| `AwsDynamoDb` | `Region`, `TableName`, `AccessKeyId`, `SecretAccessKey` | Amazon DynamoDB |
+| `GcpSecretManager` | `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId`, `CredentialFilePath` | GCP Secret Manager |
+| `GcpFirestore` | `ProjectId`, `DatabaseId`, `CollectionName`, `CredentialFilePath` | GCP Firestore |
 | `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | Проверка OCSP (заглушка) |
 | `Logging` | `PiiHmacKey` | 32-байтный base64-ключ HMAC для хэширования персональных данных в журналах |
 
@@ -322,7 +348,13 @@ dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
 dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
 dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
 dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+dotnet user-secrets set "AwsSecretsManager:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsSecretsManager:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
+dotnet user-secrets set "AwsDynamoDb:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsDynamoDb:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
 ```
+
+> Для GCP задайте переменную среды `GOOGLE_APPLICATION_CREDENTIALS`, указав путь к файлу JSON сервисного аккаунта, или выполните `gcloud auth application-default login` для локальной разработки.
 
 ---
 
@@ -349,3 +381,7 @@ dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
 - Реализация проверки OCSP является **заглушкой**, которая отклоняет все сертификаты. Замените `PerformOcspValidationAsync` перед включением `EnableOcspValidation` в production.
 - Значения nonce **никогда не журналируются**.
 - Заголовок ответа `Server` замаскирован значением `webserver`.
+- **Никогда не храните учётные данные AWS или GCP в системе контроля версий.** Используйте переменные среды или менеджер секретов.
+- Реализации AWS и GCP являются **заглушками**, требующими полноценной реализации перед использованием в production.
+- Для AWS предпочитайте роли IAM жёстко закодированным ключам доступа там, где это возможно.
+- Для GCP предпочитайте Application Default Credentials (ADC) явным файлам сервисного аккаунта.
