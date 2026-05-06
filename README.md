@@ -75,7 +75,23 @@ Sessions use in-process distributed memory cache with a **30-minute idle timeout
 - `SameSite = Strict`
 
 ### Localization
-The application is currently configured for **en-US** only. The culture is set at the request pipeline level via `RequestLocalizationOptions`.
+The application supports **11 languages** with per-view `.resx` resource files. The active culture is determined at the request pipeline level via `RequestLocalizationOptions` (Accept-Language header, query string, or cookie). Users can switch language at any time using the language picker in the navigation bar.
+
+| Culture Tag | Language |
+|---|---|
+| `en-US` | English (United States) — default |
+| `de-DE` | Deutsch (German) |
+| `es-ES` | Español (Spanish) |
+| `fr-FR` | Français (French) |
+| `pt-PT` | Português (Portuguese) |
+| `it-IT` | Italiano (Italian) |
+| `zh-HK` | 廣東話 (Cantonese — Hong Kong Traditional Chinese) |
+| `ko-KR` | 한국어 (Korean) |
+| `hi-IN` | हिन्दी (Hindi) |
+| `ru-RU` | Русский (Russian) |
+| `ar-SA` | العربية (Arabic — right-to-left layout) |
+
+Right-to-left (RTL) layout is activated automatically when Arabic is selected: the `<html>` element receives `dir="rtl"`, and the `lang` attribute carries the full BCP-47 culture tag (e.g. `ar-SA`) for correct browser behaviour.
 
 ### PII-Safe Logging
 `LoggingHelper` hashes personally identifiable information in log output using HMAC-SHA256. A stable 32-byte key can be supplied via `Logging:PiiHmacKey` (stored in User Secrets). If the key is absent or invalid, a random key is generated at startup so PII is never logged in plaintext.
@@ -89,7 +105,7 @@ All major subsystems are controlled by boolean feature flags in `appsettings.jso
 | Flag | Default | Description |
 |---|---|---|
 | `EnableSession` | `true` | Server-side session and session cookie |
-| `EnableLocalization` | `true` | en-US request culture |
+| `EnableLocalization` | `true` | Multi-language support (en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA) |
 | `EnableAzureAd` | `true` | Azure AD / OpenID Connect authentication |
 | `EnableAuthorization` | `true` | Route-level authorization policies |
 | `EnableKeyVault` | `false` | Load TLS server cert from Azure Key Vault |
