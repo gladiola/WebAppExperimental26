@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using System.Globalization;
@@ -23,6 +24,7 @@ namespace WebAppExperimental26.Extensions
         public static IServiceCollection AddFeatureFlags(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<FeatureFlags>(configuration.GetSection("FeatureFlags"));
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FeatureFlags>>().Value);
             return services;
         }
 
@@ -143,6 +145,8 @@ namespace WebAppExperimental26.Extensions
             ILogger logger,
             bool enableAuthorization = true)
         {
+            services.AddControllersWithViews();
+
             var razorPages = services.AddRazorPages(options =>
             {
                 if (enableAuthorization)
