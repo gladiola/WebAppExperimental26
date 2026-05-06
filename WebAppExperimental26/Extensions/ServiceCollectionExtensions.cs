@@ -652,7 +652,8 @@ namespace WebAppExperimental26.Extensions
                     {
                         OnRedirectToIdentityProvider = context =>
                         {
-                            logger.LogInformation("AWS Cognito: Redirecting to identity provider for path: {Path}", context.Request.Path);
+                            var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                            logger.LogInformation("AWS Cognito: Redirecting to identity provider for path: {Path}", safePath);
                             return Task.CompletedTask;
                         },
                         OnAuthenticationFailed = context =>
@@ -673,7 +674,8 @@ namespace WebAppExperimental26.Extensions
                     options.Events.OnRedirectToLogin = context =>
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        logger.LogError("AWS Cognito: Redirect to login for path: {Path}", context.Request.Path);
+                        var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                        logger.LogWarning("AWS Cognito: Redirect to login for path: {Path}", safePath);
                         return Task.CompletedTask;
                     };
                 });
@@ -742,7 +744,8 @@ namespace WebAppExperimental26.Extensions
                     {
                         OnRedirectToIdentityProvider = context =>
                         {
-                            logger.LogInformation("GCP Identity: Redirecting to identity provider for path: {Path}", context.Request.Path);
+                            var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                            logger.LogInformation("GCP Identity: Redirecting to identity provider for path: {Path}", safePath);
                             return Task.CompletedTask;
                         },
                         OnAuthenticationFailed = context =>
@@ -763,7 +766,8 @@ namespace WebAppExperimental26.Extensions
                     options.Events.OnRedirectToLogin = context =>
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        logger.LogError("GCP Identity: Redirect to login for path: {Path}", context.Request.Path);
+                        var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                        logger.LogWarning("GCP Identity: Redirect to login for path: {Path}", safePath);
                         return Task.CompletedTask;
                     };
                 });
