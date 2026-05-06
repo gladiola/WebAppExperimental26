@@ -82,9 +82,264 @@
 
 ---
 
+## التثبيت – Windows Azure (App Service)
+
+### 1. إنشاء موارد Azure
+
+```powershell
+# Log in
+az login
+
+# Create a resource group
+az group create --name MyResourceGroup --location eastus
+
+# Create an App Service plan (Linux or Windows)
+az appservice plan create --name MyPlan --resource-group MyResourceGroup --sku B1 --is-linux
+
+# Create the web app (.NET 9)
+az webapp create --name MyWebApp26 --resource-group MyResourceGroup \
+  --plan MyPlan --runtime "DOTNETCORE:9.0"
+```
+
+### 2. تسجيل تطبيق Azure AD
+
+في [بوابة Azure](https://portal.azure.com):
+1. انتقل إلى **Microsoft Entra ID → تسجيلات التطبيقات → تسجيل جديد**.
+2. اضبط URI لإعادة التوجيه على `https://<your-app>.azurewebsites.net/signin-oidc`.
+3. ضمن **الشهادات والأسرار**، أنشئ سر عميل وانسخ القيمة.
+4. دوّن **معرّف المستأجر** و**معرّف العميل** من لوحة النظرة العامة.
+
+### 3. إنشاء Azure Key Vault وتحميل شهادة الخادم
+
+```powershell
+az keyvault create --name MyKeyVault26 --resource-group MyResourceGroup --location eastus
+
+# Upload your PFX as a Key Vault secret (base64-encoded)
+$pfxBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes("server.pfx"))
+az keyvault secret set --vault-name MyKeyVault26 --name "ServerCert" --value $pfxBase64
+
+# Grant the App Service Managed Identity access
+az keyvault set-policy --name MyKeyVault26 \
+  --object-id <managed-identity-object-id> \
+  --secret-permissions get list
+```
+
+### 4. تكوين إعدادات التطبيق
+
+انسخ `appsettings.template.json` إلى `appsettings.json` واملأ قيم العناصر النائبة. يجب **عدم** تخزين الأسرار في التحكم بالمصدر — اضبطها كإعدادات تطبيق App Service أو عبر User Secrets محلياً:
+
+```powershell
+# In Azure App Service, set secrets as app settings:
+az webapp config appsettings set --name MyWebApp26 --resource-group MyResourceGroup --settings \
+  "AzureAd__TenantId=<TENANT_ID>" \
+  "AzureAd__ClientId=<CLIENT_ID>" \
+  "AzureAd__ClientSecret=<CLIENT_SECRET>" \
+  "AzureKeyVault__KeyVaultURL=https://MyKeyVault26.vault.azure.net/" \
+  "AzureKeyVault__KeyVaultSecret=<KV_SECRET>" \
+  "AzureKeyVault__KeyVaultPassName=ServerCert" \
+  "FeatureFlags__EnableKeyVault=true" \
+  "FeatureFlags__EnableAzureAd=true"
+```
+
+### 5. نشر التطبيق
+
+```bash
+dotnet publish -c Release -o ./publish
+cd publish
+zip -r ../app.zip .
+az webapp deployment source config-zip \
+  --name MyWebApp26 --resource-group MyResourceGroup --src ../app.zip
+```
+
+### 6. تمكين HTTPS والنطاق المخصص (مُوصى به)
+
+```powershell
+# Force HTTPS
+az webapp update --name MyWebApp26 --resource-group MyResourceGroup --https-only true
+
+# Bind a custom domain and managed TLS certificate
+az webapp config hostname add --webapp-name MyWebApp26 --resource-group MyResourceGroup \
+  --hostname www.example.com
+az webapp config ssl bind --certificate-thumbprint <THUMBPRINT> \
+  --name MyWebApp26 --resource-group MyResourceGroup --ssl-type SNI
+```
+
+### 7. تمكين mTLS على Azure App Service (اختياري)
+
+يدعم Azure App Service شهادات العميل عبر البوابة:
+1. انتقل إلى **App Service → إعدادات TLS/SSL → شهادات العميل**.
+2. اضبط **شهادات العميل الواردة** على **مطلوبة**.
+
+ثم اضبط `FeatureFlags__EnableMtls=true` في إعدادات التطبيق.
+
+---
+
+## التثبيت – خادم OpenBSD مع خدمات Azure
+
+> **مهم:** لا يملك .NET 9 بنية Microsoft رسمية لـ OpenBSD. تستخدم الإرشادات أدناه **حاوية متوافقة مع Linux** (عبر [Podman](https://podman.io/)، المتاح في شجرة حزم OpenBSD) لتشغيل تطبيق ASP.NET Core 9 على OpenBSD مع التواصل مع خدمات Azure عبر HTTPS.
+
+### 1. تثبيت المتطلبات الأساسية على OpenBSD
+
+```sh
+# As root
+pkg_add podman
+pkg_add curl git
+```
+
+إذا لم يكن Podman أو Docker متاحاً لإصدار OpenBSD الخاص بك، ففكر في تشغيل التطبيق في **جهاز ظاهري Linux** (مثل vmm(4) مع ضيف Debian/Ubuntu) واتبع مسار نشر Linux القياسي من داخل ذلك الضيف.
+
+### 2. سحب صورة وقت تشغيل ASP.NET Core 9
+
+```sh
+podman pull mcr.microsoft.com/dotnet/aspnet:9.0
+```
+
+### 3. بناء التطبيق (على جهاز بناء Linux أو Windows)
+
+على جهاز مثبّت عليه .NET 9 SDK، انشر بنية مستقلة تستهدف Linux x64:
+
+```bash
+dotnet publish WebAppExperimental26/WebAppExperimental26.csproj \
+  -c Release -r linux-x64 --self-contained true -o ./publish
+```
+
+انقل مجلد `publish/` إلى مضيف OpenBSD (مثلاً عبر `scp` أو وحدة تخزين مشتركة).
+
+### 4. إنشاء ملف التكوين
+
+على مضيف OpenBSD، أنشئ `/etc/webappexp26/appsettings.json` بقيم الإنتاج الخاصة بك (بدون أسرار في الملف؛ استخدم متغيرات البيئة بدلاً من ذلك):
+
+```json
+{
+  "AllowedHosts": "your.hostname.example.com",
+  "FeatureFlags": {
+    "EnableAzureAd": true,
+    "EnableKeyVault": true,
+    "EnableSecurityHeaders": true,
+    "EnableMtls": false
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "TenantId": "YOUR_TENANT_ID",
+    "ClientId": "YOUR_CLIENT_ID",
+    "CallbackPath": "/signin-oidc"
+  },
+  "AzureKeyVault": {
+    "KeyVaultURL": "https://YOUR_KEYVAULT_NAME.vault.azure.net/",
+    "KeyVaultPassName": "ServerCert"
+  }
+}
+```
+
+تُحقن الأسرار كمتغيرات بيئة في الخطوة التالية.
+
+### 5. تشغيل الحاوية
+
+```sh
+podman run -d \
+  --name webappexp26 \
+  -p 443:8443 \
+  -v /etc/webappexp26:/app/config:ro \
+  -v /path/to/publish:/app:ro \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e ASPNETCORE_URLS="https://+:8443" \
+  -e AzureAd__ClientSecret="YOUR_CLIENT_SECRET" \
+  -e AzureKeyVault__KeyVaultSecret="YOUR_KV_SECRET" \
+  -e Logging__PiiHmacKey="YOUR_32_BYTE_BASE64_KEY" \
+  mcr.microsoft.com/dotnet/aspnet:9.0 \
+  dotnet /app/WebAppExperimental26.dll \
+    --contentRoot /app \
+    --configDir /app/config
+```
+
+### 6. تكوين جدار حماية OpenBSD Packet Filter (pf)
+
+أضف إلى `/etc/pf.conf` للسماح بـ HTTPS الوارد والاتصالات الصادرة إلى نقاط نهاية Azure:
+
+```
+# Allow inbound HTTPS
+pass in on egress proto tcp to port 443
+
+# Allow outbound to Azure AD, Key Vault, Cosmos DB, Blob Storage
+pass out on egress proto tcp to port { 443 }
+```
+
+أعد تحميل مجموعة القواعد:
+
+```sh
+pfctl -f /etc/pf.conf
+```
+
+### 7. تكوين DNS وشهادات TLS
+
+تأكد من أن اسم المضيف في `AllowedHosts` يُحلّل إلى IP العام لخادم OpenBSD. يشترط Azure AD إمكانية الوصول إلى URI إعادة التوجيه (`/signin-oidc`) عبر HTTPS، لذا يجب أن تكون شهادة الخادم موثوقة. استخدم شهادة من CA عام (مثل Let's Encrypt عبر `acme-client(1)`) أو حمّل شهادة موقّعة من CA إلى Azure Key Vault وفعّل `EnableKeyVault`.
+
+### 8. الاتصال الصادر بخدمات Azure
+
+يجب أن تكون نقاط نهاية خدمة Azure التالية قابلة للوصول من مضيف OpenBSD عبر TCP 443:
+
+| Service | Endpoint |
+|---|---|
+| Azure AD / Microsoft Identity | `login.microsoftonline.com` |
+| Azure Key Vault | `<vault-name>.vault.azure.net` |
+| Azure Cosmos DB | `<account>.documents.azure.com` |
+| Azure Blob Storage | `<account>.blob.core.windows.net` |
+
+اختبر الاتصال قبل بدء الحاوية:
+
+```sh
+curl -I https://login.microsoftonline.com
+curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
+```
+
+---
+
 ## مرجع التكوين
 
-انسخ `appsettings.template.json` إلى `appsettings.json` واستبدل جميع قيم `{{PLACEHOLDER}}`. احتفظ بالأسرار في **.NET User Secrets** (محلياً) أو Azure App Settings / Key Vault References (الإنتاج) — ولا تضعها أبداً في الكود المصدري.
+انسخ `appsettings.template.json` إلى `appsettings.json` واستبدل جميع قيم `{{PLACEHOLDER}}`.
+
+| القسم | المفتاح | الوصف |
+|---|---|---|
+| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | تسجيل تطبيق Azure AD |
+| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault واسم الشهادة |
+| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | سياسة شهادة العميل mTLS |
+| `NonceEncryption` | `Key`, `IV` | مفتاح 32 بايت وIV بحجم 16 بايت لتشفير nonce (base64) |
+| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | اتصال Blob Storage |
+| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | اتصال Cosmos DB |
+| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | التحقق من OCSP (نموذج أولي) |
+| `Logging` | `PiiHmacKey` | مفتاح HMAC بصيغة base64 بحجم 32 بايت لتجزئة PII في السجلات |
+
+أنشئ مفاتيح التشفير وقيم IV باستخدام البرنامج النصي PowerShell المضمّن:
+
+```powershell
+.\WebAppExperimental26\SupportingScripts\IVandKeySampleGenerator.ps1
+```
+
+خزّن جميع الأسرار في **.NET User Secrets** للتطوير المحلي:
+
+```bash
+dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
+dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
+dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
+dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+```
+
+---
+
+## النصوص البرمجية المساعدة
+
+يحتوي مجلد `SupportingScripts/` على أدوات PowerShell:
+
+| النص البرمجي | الغرض |
+|---|---|
+| `IVandKeySampleGenerator.ps1` | توليد مفتاح AES عشوائي بحجم 32 بايت وIV بحجم 16 بايت (base64) |
+| `HashInlineScriptPowerShell.ps1` | حساب تجزئات SHA-256 للنصوص البرمجية المضمّنة (لقوائم السماح في CSP) |
+| `HashInlineScriptPowerShellBase64Output.ps1` | كما هو أعلاه، يُخرج التجزئات بصيغة base64 |
+| `CertificateUploaderToAzureExample.ps1` | تحميل شهادة PFX إلى Azure Key Vault |
+| `CheckRoles.ps1` | التحقق من تعيينات أدوار RBAC في Azure للتطبيق |
+| `ExportResourceGroups.ps1` | تصدير إعدادات مجموعات موارد Azure |
+| `TroubleshootingCosmosDBInfo.ps1` | تشخيص اتصال Cosmos DB |
+| `SetupFromTemplate.ps1` | أتمتة التكوين الأولي من `appsettings.template.json` |
 
 ---
 
