@@ -17,12 +17,16 @@ namespace WebAppExperimental26.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             LoggingHelper.TrackFunctionCall(HttpContext, "HomeController.Index");
             return View();
         }
 
+        [AllowAnonymous]
+        [Route("Privacy")]
+        [Route("Home/Privacy")]
         public IActionResult Privacy()
         {
             LoggingHelper.TrackFunctionCall(HttpContext, "HomeController.Privacy");

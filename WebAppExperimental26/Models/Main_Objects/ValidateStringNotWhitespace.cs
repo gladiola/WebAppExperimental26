@@ -30,18 +30,19 @@ namespace WebAppExperimental26.Models.Main_Objects
         /// <returns>ValidationResult object</returns>
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            ValidationResult? result;
-
-            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+            // Null is allowed; use [Required] to enforce non-null.
+            if (value == null)
             {
-                result = new ValidationResult("Printable characters are required.");
-            }
-            else
-            {
-                result = ValidationResult.Success;
+                return ValidationResult.Success;
             }
 
-            return result;
+            if (value is string str && string.IsNullOrWhiteSpace(str))
+            {
+                var displayName = validationContext?.DisplayName ?? string.Empty;
+                return new ValidationResult(FormatErrorMessage(displayName));
+            }
+
+            return ValidationResult.Success;
         }
 
     }

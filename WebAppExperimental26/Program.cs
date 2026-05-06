@@ -181,13 +181,17 @@ namespace WebAppExperimental26
             if (featureFlags.EnableAzureAd)
             {
                 app.UseAuthentication();
-                app.UseAuthorization();
             }
+
+            // UseAuthorization must always be present when any endpoint has authorization metadata
+            app.UseAuthorization();
 
             // Map endpoints
             app.MapStaticAssets();
             app.MapRazorPages().WithStaticAssets();
-            app.MapControllers();
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
             logger.LogInformation("=== Application Ready - Starting Server ===");
             app.Run();
