@@ -1,3 +1,6 @@
+using Amazon;
+using Amazon.DynamoDBv2;
+using Amazon.Runtime;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Localization;
@@ -9,10 +12,14 @@ using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
+using WebAppExperimental26.AwsSecretManager;
+using WebAppExperimental26.GcpSecretManager;
 using WebAppExperimental26.Models.Settings;
 using WebAppExperimental26.Services;
 using WebAppExperimental26.AzureKeyVaultOperations;
 using WebAppExperimental26.Interfaces.Main_Objects;
+using Google.Cloud.Firestore;
+using Google.Apis.Auth.OAuth2;
 
 namespace WebAppExperimental26.Extensions
 {
@@ -474,6 +481,184 @@ namespace WebAppExperimental26.Extensions
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Cosmos DB configuration failed");
+                    throw;
+                }
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Configure AWS Secrets Manager (parallel to Azure Key Vault).
+        /// </summary>
+        public static IServiceCollection AddAwsSecretsManagerServices(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("AWS Secrets Manager is DISABLED");
+            }
+            else
+            {
+                var settings = configuration.GetSection("AwsSecretsManager").Get<AwsSecretsManagerSettings>()
+                    ?? throw new InvalidOperationException("AwsSecretsManagerSettings not found");
+
+                logger.LogInformation("Configuring AWS Secrets Manager for region: {Region}", settings.Region);
+
+                services.AddSingleton<IAwsSecretsManagerSettingsService>(new AwsSecretsManagerSettingsService(settings));
+                services.AddSingleton<IAwsSecretManagerOperations, AwsSecretManagerOperations>();
+                services.AddSingleton<IAwsSecretsManagerOperationsService, AwsSecretsManagerOperationsService>();
+
+                logger.LogInformation("AWS Secrets Manager services configured");
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Configure Amazon DynamoDB (parallel to Azure Cosmos DB).
+        /// </summary>
+        public static async Task<IServiceCollection> AddAwsDynamoDbServicesAsync(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("AWS DynamoDB is DISABLED");
+            }
+            else
+            {
+                try
+                {
+                    var settings = configuration.GetSection("AwsDynamoDb").Get<AwsDynamoDbSettings>()
+                        ?? throw new InvalidOperationException("AwsDynamoDbSettings not found");
+
+                    logger.LogInformation("Configuring AWS DynamoDB for region: {Region}, table: {Table}",
+                        settings.Region, settings.TableName);
+
+                    var credentials = new BasicAWSCredentials(settings.AccessKeyId, settings.SecretAccessKey);
+                    var region = RegionEndpoint.GetBySystemName(settings.Region);
+                    var dynamoClient = new AmazonDynamoDBClient(credentials, region);
+
+                    // Verify connection by describing the table
+                    await dynamoClient.DescribeTableAsync(settings.TableName);
+
+                    logger.LogInformation("AWS DynamoDB table verified: {Table}", settings.TableName);
+
+                    services.AddSingleton<IAwsDynamoDbSettingsService>(new AwsDynamoDbSettingsService(settings));
+                    services.AddSingleton<IAmazonDynamoDB>(dynamoClient);
+                    services.AddSingleton<AwsDynamoDbService>(provider =>
+                    {
+                        var client = provider.GetRequiredService<IAmazonDynamoDB>();
+                        return new AwsDynamoDbService(client, settings.TableName);
+                    });
+
+                    logger.LogInformation("AWS DynamoDB services configured");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "AWS DynamoDB configuration failed");
+                    throw;
+                }
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Configure Google Cloud Secret Manager (parallel to Azure Key Vault).
+        /// </summary>
+        public static IServiceCollection AddGcpSecretManagerServices(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("GCP Secret Manager is DISABLED");
+            }
+            else
+            {
+                var settings = configuration.GetSection("GcpSecretManager").Get<GcpSecretManagerSettings>()
+                    ?? throw new InvalidOperationException("GcpSecretManagerSettings not found");
+
+                logger.LogInformation("Configuring GCP Secret Manager for project: {Project}", settings.ProjectId);
+
+                services.AddSingleton<IGcpSecretManagerSettingsService>(new GcpSecretManagerSettingsService(settings));
+                services.AddSingleton<IGcpSecretManagerOperations, GcpSecretManagerOperations>();
+                services.AddSingleton<IGcpSecretManagerOperationsService, GcpSecretManagerOperationsService>();
+
+                logger.LogInformation("GCP Secret Manager services configured");
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Configure Google Cloud Firestore (parallel to Azure Cosmos DB).
+        /// </summary>
+        public static async Task<IServiceCollection> AddGcpFirestoreServicesAsync(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("GCP Firestore is DISABLED");
+            }
+            else
+            {
+                try
+                {
+                    var settings = configuration.GetSection("GcpFirestore").Get<GcpFirestoreSettings>()
+                        ?? throw new InvalidOperationException("GcpFirestoreSettings not found");
+
+                    logger.LogInformation("Configuring GCP Firestore for project: {Project}, collection: {Collection}",
+                        settings.ProjectId, settings.CollectionName);
+
+                    GoogleCredential? gcpCredential = null;
+                    if (!string.IsNullOrEmpty(settings.CredentialFilePath))
+                    {
+                        await using var credStream = File.OpenRead(settings.CredentialFilePath);
+                        // GoogleCredential.FromStream is the stable cross-version API for loading
+                        // service-account JSON files; the obsolete warning is suppressed here
+                        // because the replacement CredentialFactory API has not yet stabilised
+                        // across all Google.Apis.Auth releases targeted by this project.
+#pragma warning disable CS0618
+                        gcpCredential = GoogleCredential.FromStream(credStream);
+#pragma warning restore CS0618
+                    }
+
+                    var firestoreDb = gcpCredential is null
+                        ? await FirestoreDb.CreateAsync(settings.ProjectId)
+                        : await new FirestoreDbBuilder
+                          {
+                              ProjectId = settings.ProjectId,
+                              GoogleCredential = gcpCredential
+                          }.BuildAsync();
+
+                    logger.LogInformation("GCP Firestore connected to project: {Project}", settings.ProjectId);
+
+                    services.AddSingleton<IGcpFirestoreSettingsService>(new GcpFirestoreSettingsService(settings));
+                    services.AddSingleton(firestoreDb);
+                    services.AddSingleton<GcpFirestoreService>(provider =>
+                    {
+                        var db = provider.GetRequiredService<FirestoreDb>();
+                        return new GcpFirestoreService(db, settings.CollectionName);
+                    });
+
+                    logger.LogInformation("GCP Firestore services configured");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "GCP Firestore configuration failed");
                     throw;
                 }
             }

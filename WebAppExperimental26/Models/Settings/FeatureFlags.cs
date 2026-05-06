@@ -14,5 +14,13 @@ namespace WebAppExperimental26.Models.Settings
         public bool EnableCSP { get; set; } = true;
         public bool EnableMtls { get; set; } = false;
         public bool EnableOcspValidation { get; set; } = false;
+
+        // AWS
+        public bool EnableAwsSecretsManager { get; set; } = false;
+        public bool EnableAwsDynamoDb { get; set; } = false;
+
+        // GCP
+        public bool EnableGcpSecretManager { get; set; } = false;
+        public bool EnableGcpFirestore { get; set; } = false;
     }
 }

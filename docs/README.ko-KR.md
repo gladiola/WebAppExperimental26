@@ -1,6 +1,6 @@
 # WebAppExperimental26
 
-Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmos DB, Azure Blob Storage, nonce 기반 Content Security Policy를 갖춘 강화된 HTTP 보안 레이어를 포함하는 ASP.NET Core 9 Razor Pages 웹 애플리케이션입니다.
+Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, GCP Secret Manager, GCP Firestore, nonce 기반 Content Security Policy를 갖춘 강화된 HTTP 보안 레이어를 포함하는 ASP.NET Core 9 Razor Pages 웹 애플리케이션입니다.
 
 ---
 
@@ -40,6 +40,18 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 ### Azure Cosmos DB
 활성화되면 애플리케이션은 시작 시 `database.ReadAsync()`를 호출하여 Cosmos DB 연결을 확인합니다.
 
+### AWS Secrets Manager
+활성화되면 `AwsSecretsManagerOperationsService`는 AWS Secrets Manager에서 비밀 및 인증서를 가져옵니다. `AwsSecretsManager` 섹션에서 `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName` 및 `AccessKeyId`/`SecretAccessKey` 자격 증명으로 구성합니다.
+
+### Amazon DynamoDB
+활성화되면 `AwsDynamoDbService`는 시작 시 DynamoDB 테이블 연결을 확인합니다. `AwsDynamoDb` 섹션에서 `Region`, `TableName` 및 `AccessKeyId`/`SecretAccessKey` 자격 증명으로 구성합니다.
+
+### GCP Secret Manager
+활성화되면 `GcpSecretManagerOperationsService`는 Google Cloud Secret Manager에서 비밀을 가져옵니다. `GcpSecretManager` 섹션에서 `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId` 및 `CredentialFilePath`(선택 사항, 비어 있으면 ADC 사용)로 구성합니다.
+
+### GCP Firestore
+활성화되면 `GcpFirestoreService`는 시작 시 Firestore 클라이언트를 빌드합니다. `GcpFirestore` 섹션에서 `ProjectId`, `DatabaseId`(기본값: "(default)"), `CollectionName` 및 `CredentialFilePath`(선택 사항)로 구성합니다.
+
 ### 보안 세션 관리
 세션은 **30분 유휴 시간 초과**를 사용하는 프로세스 내 분산 메모리 캐시를 사용합니다. 세션 쿠키는 `HttpOnly`, `Secure = Always`, `SameSite = Strict`로 구성됩니다.
 
@@ -67,6 +79,10 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 | `EnableSecurityHeaders` | `true` | 표준 HTTP 보안 헤더 추가 |
 | `EnableBlobStorage` | `false` | Azure Blob Storage 서비스 |
 | `EnableCosmosDb` | `false` | Azure Cosmos DB 서비스 |
+| `EnableAwsSecretsManager` | `false` | AWS Secrets Manager 스텁 |
+| `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableGcpSecretManager` | `false` | GCP Secret Manager 스텁 |
+| `EnableGcpFirestore` | `false` | Google Cloud Firestore |
 | `EnableMtls` | `false` | 클라이언트 TLS 인증서 요구 |
 | `EnableOcspValidation` | `false` | OCSP 인증서 해지 확인(스텁) |
 
@@ -79,6 +95,8 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 3. **Azure Cosmos DB 계정**(선택 사항).
 4. **Azure Blob Storage 계정**(선택 사항).
 5. **.NET 9 SDK / 런타임** – 버전 9.0 이상.
+6. **AWS 자격 증명** (`secretsmanager` 및 `dynamodb` 권한이 있는 IAM 사용자/역할) – `EnableAwsSecretsManager` 또는 `EnableAwsDynamoDb`가 활성화될 때 필요.
+7. **GCP 서비스 계정 또는 ADC** (`secretmanager` 및 `datastore` 권한 포함) – `EnableGcpSecretManager` 또는 `EnableGcpFirestore`가 활성화될 때 필요.
 
 ---
 
@@ -284,6 +302,10 @@ pfctl -f /etc/pf.conf
 | Azure Key Vault | `<vault-name>.vault.azure.net` |
 | Azure Cosmos DB | `<account>.documents.azure.com` |
 | Azure Blob Storage | `<account>.blob.core.windows.net` |
+| AWS Secrets Manager | `secretsmanager.REGION.amazonaws.com` |
+| Amazon DynamoDB | `dynamodb.REGION.amazonaws.com` |
+| GCP Secret Manager | `secretmanager.googleapis.com` |
+| GCP Firestore | `firestore.googleapis.com` |
 
 컨테이너를 시작하기 전에 연결을 테스트합니다:
 
@@ -306,6 +328,10 @@ curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
 | `NonceEncryption` | `Key`, `IV` | nonce 암호화를 위한 32바이트 키 및 16바이트 IV(base64) |
 | `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage 연결 |
 | `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB 연결 |
+| `AwsSecretsManager` | `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName`, `AccessKeyId`, `SecretAccessKey` | AWS Secrets Manager |
+| `AwsDynamoDb` | `Region`, `TableName`, `AccessKeyId`, `SecretAccessKey` | Amazon DynamoDB |
+| `GcpSecretManager` | `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId`, `CredentialFilePath` | GCP Secret Manager |
+| `GcpFirestore` | `ProjectId`, `DatabaseId`, `CollectionName`, `CredentialFilePath` | GCP Firestore |
 | `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP 유효성 검사(스텁) |
 | `Logging` | `PiiHmacKey` | 로그에서 PII 해싱을 위한 32바이트 base64 HMAC 키 |
 
@@ -322,7 +348,13 @@ dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
 dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
 dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
 dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+dotnet user-secrets set "AwsSecretsManager:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsSecretsManager:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
+dotnet user-secrets set "AwsDynamoDb:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsDynamoDb:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
 ```
+
+> GCP의 경우 서비스 계정 JSON 파일 경로로 `GOOGLE_APPLICATION_CREDENTIALS` 환경 변수를 설정하거나 로컬 개발을 위해 `gcloud auth application-default login`을 실행합니다.
 
 ---
 
@@ -349,3 +381,7 @@ dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
 - OCSP 유효성 검사 구현은 모든 인증서를 거부하는 **스텁**입니다. 프로덕션에서 `EnableOcspValidation`을 활성화하기 전에 `PerformOcspValidationAsync`를 교체하십시오.
 - Nonce 값은 **절대 로깅되지 않습니다**.
 - `Server` 응답 헤더는 `webserver`로 마스킹됩니다.
+- **AWS 또는 GCP 자격 증명을 소스 제어에 저장하지 마십시오.** 환경 변수 또는 시크릿 관리자를 사용하십시오.
+- AWS 및 GCP 구현은 **스텁**으로, 프로덕션 사용 전 완전한 구현이 필요합니다.
+- AWS의 경우, 하드코딩된 액세스 키보다 IAM 역할을 가능한 한 선호하십시오.
+- GCP의 경우, 명시적 서비스 계정 파일보다 Application Default Credentials(ADC)를 선호하십시오.

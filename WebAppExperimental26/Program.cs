@@ -76,8 +76,10 @@ namespace WebAppExperimental26
             builder.Services.AddFeatureFlags(builder.Configuration);
             var featureFlags = builder.Configuration.GetSection("FeatureFlags").Get<FeatureFlags>() ?? new FeatureFlags();
 
-            logger.LogInformation("Feature Flags Loaded: AzureAd={AzureAd}, CosmosDb={CosmosDb}, BlobStorage={BlobStorage}",
-                featureFlags.EnableAzureAd, featureFlags.EnableCosmosDb, featureFlags.EnableBlobStorage);
+            logger.LogInformation("Feature Flags Loaded: AzureAd={AzureAd}, CosmosDb={CosmosDb}, BlobStorage={BlobStorage}, AwsSecretsManager={AwsSM}, AwsDynamoDb={AwsDynamo}, GcpSecretManager={GcpSM}, GcpFirestore={GcpFirestore}",
+                featureFlags.EnableAzureAd, featureFlags.EnableCosmosDb, featureFlags.EnableBlobStorage,
+                featureFlags.EnableAwsSecretsManager, featureFlags.EnableAwsDynamoDb,
+                featureFlags.EnableGcpSecretManager, featureFlags.EnableGcpFirestore);
 
             // Core services
             builder.Services.AddSingleton<ILoggerFactory, LoggerFactory>();
@@ -136,6 +138,40 @@ namespace WebAppExperimental26
                     builder.Configuration,
                     logger,
                     featureFlags.EnableCosmosDb);
+            }
+
+            // Phase 3: AWS Cloud Services (Optional)
+            if (featureFlags.EnableAwsSecretsManager)
+            {
+                builder.Services.AddAwsSecretsManagerServices(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableAwsSecretsManager);
+            }
+
+            if (featureFlags.EnableAwsDynamoDb)
+            {
+                await builder.Services.AddAwsDynamoDbServicesAsync(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableAwsDynamoDb);
+            }
+
+            // Phase 3: GCP Cloud Services (Optional)
+            if (featureFlags.EnableGcpSecretManager)
+            {
+                builder.Services.AddGcpSecretManagerServices(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableGcpSecretManager);
+            }
+
+            if (featureFlags.EnableGcpFirestore)
+            {
+                await builder.Services.AddGcpFirestoreServicesAsync(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableGcpFirestore);
             }
 
             logger.LogInformation("=== Service Configuration Complete ===");

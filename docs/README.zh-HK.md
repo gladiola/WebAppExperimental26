@@ -1,6 +1,6 @@
 # WebAppExperimental26
 
-一個 ASP.NET Core 9 Razor Pages 網頁應用程式，具備 Azure AD 身份驗證、雙向 TLS（mTLS）、Azure Key Vault 憑證管理、Azure Cosmos DB、Azure Blob Storage，以及基於 nonce 的 Content Security Policy 強化 HTTP 安全層。
+一個 ASP.NET Core 9 Razor Pages 網頁應用程式，具備 Azure AD 身份驗證、雙向 TLS（mTLS）、Azure Key Vault 憑證管理、Azure Cosmos DB、Azure Blob Storage、AWS Secrets Manager、Amazon DynamoDB、GCP Secret Manager、GCP Firestore，以及基於 nonce 的 Content Security Policy 強化 HTTP 安全層。
 
 ---
 
@@ -40,6 +40,18 @@
 ### Azure Cosmos DB
 啟用後，應用程式在啟動時透過呼叫 `database.ReadAsync()` 驗證 Cosmos DB 連線。
 
+### AWS Secrets Manager
+啟用後，`AwsSecretsManagerOperationsService` 從 AWS Secrets Manager 取得秘密和憑證。在 `AwsSecretsManager` 區段中使用 `Region`、`CertificateSecretName`、`IVSecretName`、`NonceKeySecretName` 及 `AccessKeyId`/`SecretAccessKey` 憑據進行設定。
+
+### Amazon DynamoDB
+啟用後，`AwsDynamoDbService` 在啟動時驗證 DynamoDB 資料表連線。在 `AwsDynamoDb` 區段中使用 `Region`、`TableName` 及 `AccessKeyId`/`SecretAccessKey` 憑據進行設定。
+
+### GCP Secret Manager
+啟用後，`GcpSecretManagerOperationsService` 從 Google Cloud Secret Manager 取得秘密。在 `GcpSecretManager` 區段中使用 `ProjectId`、`CertificateSecretId`、`IVSecretId`、`NonceKeySecretId` 及 `CredentialFilePath`（選用，空白時使用 ADC）進行設定。
+
+### GCP Firestore
+啟用後，`GcpFirestoreService` 在啟動時建立 Firestore 客戶端。在 `GcpFirestore` 區段中使用 `ProjectId`、`DatabaseId`（預設："(default)"）、`CollectionName` 及 `CredentialFilePath`（選用）進行設定。
+
 ### 安全的 Session 管理
 Session 使用進程內分散式記憶體快取，具有 **30 分鐘閒置逾時**。Session Cookie 設定為 `HttpOnly`、`Secure = Always` 和 `SameSite = Strict`。
 
@@ -67,6 +79,10 @@ Session 使用進程內分散式記憶體快取，具有 **30 分鐘閒置逾時
 | `EnableSecurityHeaders` | `true` | 附加標準 HTTP 安全標頭 |
 | `EnableBlobStorage` | `false` | Azure Blob Storage 服務 |
 | `EnableCosmosDb` | `false` | Azure Cosmos DB 服務 |
+| `EnableAwsSecretsManager` | `false` | AWS Secrets Manager Stub |
+| `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableGcpSecretManager` | `false` | GCP Secret Manager Stub |
+| `EnableGcpFirestore` | `false` | Google Cloud Firestore |
 | `EnableMtls` | `false` | 要求客戶端 TLS 憑證 |
 | `EnableOcspValidation` | `false` | OCSP 憑證撤銷檢查（Stub） |
 
@@ -79,6 +95,8 @@ Session 使用進程內分散式記憶體快取，具有 **30 分鐘閒置逾時
 3. **Azure Cosmos DB 帳戶**（選用）。
 4. **Azure Blob Storage 帳戶**（選用）。
 5. **.NET 9 SDK / Runtime** – 9.0 版或更高版本。
+6. **AWS 憑據**（具有 `secretsmanager` 和 `dynamodb` 權限的 IAM 使用者/角色）– 啟用 `EnableAwsSecretsManager` 或 `EnableAwsDynamoDb` 時需要。
+7. **GCP 服務帳戶或 ADC**（具有 `secretmanager` 和 `datastore` 權限）– 啟用 `EnableGcpSecretManager` 或 `EnableGcpFirestore` 時需要。
 
 ---
 
@@ -284,6 +302,10 @@ pfctl -f /etc/pf.conf
 | Azure Key Vault | `<vault-name>.vault.azure.net` |
 | Azure Cosmos DB | `<account>.documents.azure.com` |
 | Azure Blob Storage | `<account>.blob.core.windows.net` |
+| AWS Secrets Manager | `secretsmanager.REGION.amazonaws.com` |
+| Amazon DynamoDB | `dynamodb.REGION.amazonaws.com` |
+| GCP Secret Manager | `secretmanager.googleapis.com` |
+| GCP Firestore | `firestore.googleapis.com` |
 
 在啟動容器之前測試連線：
 
@@ -306,6 +328,10 @@ curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
 | `NonceEncryption` | `Key`, `IV` | 用於 Nonce 加密的 32 字節密鑰和 16 字節 IV（base64） |
 | `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage 連接 |
 | `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB 連接 |
+| `AwsSecretsManager` | `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName`, `AccessKeyId`, `SecretAccessKey` | AWS Secrets Manager |
+| `AwsDynamoDb` | `Region`, `TableName`, `AccessKeyId`, `SecretAccessKey` | Amazon DynamoDB |
+| `GcpSecretManager` | `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId`, `CredentialFilePath` | GCP Secret Manager |
+| `GcpFirestore` | `ProjectId`, `DatabaseId`, `CollectionName`, `CredentialFilePath` | GCP Firestore |
 | `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP 驗證（Stub） |
 | `Logging` | `PiiHmacKey` | 用於日誌中 PII 雜湊的 32 字節 base64 HMAC 密鑰 |
 
@@ -322,7 +348,13 @@ dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
 dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
 dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
 dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+dotnet user-secrets set "AwsSecretsManager:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsSecretsManager:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
+dotnet user-secrets set "AwsDynamoDb:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
+dotnet user-secrets set "AwsDynamoDb:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
 ```
+
+> 對於 GCP，請將 `GOOGLE_APPLICATION_CREDENTIALS` 環境變數設定為服務帳戶 JSON 檔案的路徑，或執行 `gcloud auth application-default login` 進行本機開發。
 
 ---
 
@@ -349,3 +381,7 @@ dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
 - OCSP 驗證實作為 **Stub**，會拒絕所有憑證。在生產環境啟用 `EnableOcspValidation` 之前，請替換 `PerformOcspValidationAsync`。
 - Nonce 值**永遠不會記錄**在日誌中。
 - `Server` 回應標頭被遮蔽為 `webserver`。
+- **切勿將 AWS 或 GCP 憑證儲存在版本控制系統中。** 請使用環境變數或機密管理器。
+- AWS 和 GCP 實作為 **Stub**，在生產環境使用前需要完整實作。
+- 對於 AWS，盡可能優先使用 IAM 角色而非硬式編碼的存取金鑰。
+- 對於 GCP，優先使用 Application Default Credentials（ADC）而非明確的服務帳戶檔案。
