@@ -56,11 +56,7 @@ namespace WebAppExperimental26.Tests.Services
             var service = new NonceRefresherService(
                 mockLogger.Object,
                 mockLoggerFactory.Object,
-                new Mock<IKeyVaultSettingsService>().Object,
-                new Mock<INonceEncryptionSettingsService>().Object,
-                new Mock<IAzureADSettingsService>().Object,
-                mockCatalog.Object,
-                new Mock<IAzureKeyVaultOperationsService>().Object);
+                mockCatalog.Object);
 
             // Act
             var nonceValue = await service.RefreshNonceAsync();

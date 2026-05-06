@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using WebAppExperimental26.AzureKeyVaultOperations;
 using WebAppExperimental26.Models.Main_Objects;
-using WebAppExperimental26.Models.Settings;
 
 namespace WebAppExperimental26.Services
 {
@@ -14,21 +12,13 @@ namespace WebAppExperimental26.Services
 
         private readonly ILogger<NonceRefresherService> _logger;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IKeyVaultSettingsService _keyVaultSettingsService;
         private readonly INonceCatalogService _nonceCatalogService;
-        private readonly INonceEncryptionSettingsService _nonceEncryptionSettingsService;
-        private readonly IAzureADSettingsService _azureADSettingsService;
-        private readonly IAzureKeyVaultOperationsService _azureKeyVaultOperationsService;
 
-        public NonceRefresherService(ILogger<NonceRefresherService> logger, ILoggerFactory loggerFactory, IKeyVaultSettingsService keyVaultSettingsService, INonceEncryptionSettingsService nonceEncryptionSettingsService, IAzureADSettingsService azureADSettingsService, INonceCatalogService nonceCatalogService, IAzureKeyVaultOperationsService azureKeyVaultOperationsService) { 
+        public NonceRefresherService(ILogger<NonceRefresherService> logger, ILoggerFactory loggerFactory, INonceCatalogService nonceCatalogService) { 
         
             _logger = logger;
             _loggerFactory = loggerFactory;
-            _keyVaultSettingsService = keyVaultSettingsService;
             _nonceCatalogService = nonceCatalogService;
-            _nonceEncryptionSettingsService = nonceEncryptionSettingsService;
-            _azureADSettingsService = azureADSettingsService;
-            _azureKeyVaultOperationsService = azureKeyVaultOperationsService;
 
         }
 

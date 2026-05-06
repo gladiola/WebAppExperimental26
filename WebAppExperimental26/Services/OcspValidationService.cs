@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
 using WebAppExperimental26.Models.Settings;
@@ -33,7 +34,7 @@ namespace WebAppExperimental26.Services
         private readonly ILogger<OcspValidationService> _logger;
         private readonly OcspSettings _settings;
         private readonly HttpClient _httpClient;
-        private readonly Dictionary<string, CachedOcspResponse> _cache;
+        private readonly ConcurrentDictionary<string, CachedOcspResponse> _cache;
 
         public OcspValidationService(
             ILogger<OcspValidationService> logger,
@@ -44,7 +45,7 @@ namespace WebAppExperimental26.Services
             _settings = settings;
             _httpClient = httpClient;
             _httpClient.Timeout = TimeSpan.FromSeconds(_settings.RequestTimeoutSeconds);
-            _cache = new Dictionary<string, CachedOcspResponse>();
+            _cache = new ConcurrentDictionary<string, CachedOcspResponse>();
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace WebAppExperimental26.Services
                     else
                     {
                         // Remove expired cache entry
-                        _cache.Remove(certKey);
+                        _cache.TryRemove(certKey, out _);
                         result = await PerformAndCacheOcspValidationAsync(certificate, certKey);
                     }
                 }

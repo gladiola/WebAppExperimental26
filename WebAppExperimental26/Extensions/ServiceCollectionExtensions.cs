@@ -385,6 +385,18 @@ namespace WebAppExperimental26.Extensions
                     });
 
                 logger.LogInformation("mTLS certificate authentication configured successfully");
+
+                // Warn operators when issuer validation is on but no issuers are configured —
+                // this causes all client certificates to be rejected (fail-closed) and is
+                // likely a misconfiguration.
+                if (mtlsSettings.ValidateClientCertificateIssuer &&
+                    (mtlsSettings.AllowedIssuers == null || mtlsSettings.AllowedIssuers.Count == 0))
+                {
+                    logger.LogWarning(
+                        "mTLS: ValidateClientCertificateIssuer is enabled but AllowedIssuers is empty. " +
+                        "All client certificates will be rejected. " +
+                        "Populate MtlsSettings:AllowedIssuers in configuration to allow specific issuers.");
+                }
             }
 
             return services;
