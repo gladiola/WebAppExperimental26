@@ -1,5 +1,9 @@
 # WebAppExperimental26
 
+An ASP.NET Core 9 Razor Pages web application with Azure AD authentication, mutual TLS (mTLS), Azure Key Vault certificate management, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, Google Cloud Secret Manager, Google Cloud Firestore, and a hardened HTTP security layer with nonce-based Content Security Policy.
+
+---
+
 ## 🌐 Language Index
 
 This documentation is available in the following languages:
@@ -30,10 +34,6 @@ This documentation is available in the following languages:
 | Yoruba (yo-NG) | [docs/README.yo-NG.md](docs/README.yo-NG.md) |
 | Chinese Simplified (zh-CN) | [docs/README.zh-CN.md](docs/README.zh-CN.md) |
 | Chinese Traditional (zh-HK) | [docs/README.zh-HK.md](docs/README.zh-HK.md) |
-
----
-
-An ASP.NET Core 9 Razor Pages web application with Azure AD authentication, mutual TLS (mTLS), Azure Key Vault certificate management, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, Google Cloud Secret Manager, Google Cloud Firestore, and a hardened HTTP security layer with nonce-based Content Security Policy.
 
 ---
 
