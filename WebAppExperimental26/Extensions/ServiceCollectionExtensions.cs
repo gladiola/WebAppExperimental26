@@ -54,7 +54,7 @@ namespace WebAppExperimental26.Extensions
         }
 
         /// <summary>
-        /// Configure localization for en-US, de-DE, es-ES, and fr-FR
+        /// Configure localization for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, and ar-SA
         /// </summary>
         public static IServiceCollection AddLocalizationConfiguration(this IServiceCollection services, ILogger logger, bool enabled = true)
         {
@@ -72,6 +72,13 @@ namespace WebAppExperimental26.Extensions
                     new CultureInfo("de-DE"),
                     new CultureInfo("es-ES"),
                     new CultureInfo("fr-FR"),
+                    new CultureInfo("pt-PT"),
+                    new CultureInfo("it-IT"),
+                    new CultureInfo("zh-HK"),
+                    new CultureInfo("ko-KR"),
+                    new CultureInfo("hi-IN"),
+                    new CultureInfo("ru-RU"),
+                    new CultureInfo("ar-SA"),
                 };
 
                 services.Configure<RequestLocalizationOptions>(options =>
@@ -81,7 +88,7 @@ namespace WebAppExperimental26.Extensions
                     options.SupportedUICultures = supportedCultures;
                 });
 
-                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR");
+                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA");
             }
 
             return services;

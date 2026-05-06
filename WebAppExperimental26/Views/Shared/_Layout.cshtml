@@ -1,6 +1,6 @@
 ﻿@inject IViewLocalizer Localizer
 <!DOCTYPE html>
-<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<html lang="@CultureInfo.CurrentUICulture.Name" dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -60,6 +60,55 @@
                                         <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
                                         <input type="hidden" name="culture" value="fr-FR" />
                                         <button type="submit" class="dropdown-item">Français</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="pt-PT" />
+                                        <button type="submit" class="dropdown-item">Português</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="it-IT" />
+                                        <button type="submit" class="dropdown-item">Italiano</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="zh-HK" />
+                                        <button type="submit" class="dropdown-item">廣東話</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="ko-KR" />
+                                        <button type="submit" class="dropdown-item">한국어</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="hi-IN" />
+                                        <button type="submit" class="dropdown-item">हिन्दी</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="ru-RU" />
+                                        <button type="submit" class="dropdown-item">Русский</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-controller="Home" asp-action="SetLanguage">
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="culture" value="ar-SA" />
+                                        <button type="submit" class="dropdown-item">العربية</button>
                                     </form>
                                 </li>
                             </ul>
