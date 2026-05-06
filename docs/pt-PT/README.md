@@ -66,7 +66,37 @@ Configuração na secção `GcpIdentity`: `ClientId`, `ClientSecret` (guardar em
 As sessões utilizam uma cache de memória distribuída em processo com um **tempo limite de inatividade de 30 minutos**. Os cookies de sessão são configurados como `HttpOnly`, `Secure = Always` e `SameSite = Strict`.
 
 ### Localização
-A aplicação suporta **11 idiomas**: en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU e ar-SA. O árabe inclui comutação automática para layout RTL.
+A aplicação suporta **25 idiomas** com ficheiros de recursos `.resx` por vista. A cultura ativa é determinada no pipeline de pedido via `RequestLocalizationOptions` (cabeçalho Accept-Language, query string ou cookie), e os utilizadores podem mudar de idioma a qualquer momento através do seletor de idioma na barra de navegação.
+
+| Etiqueta de cultura | Idioma |
+|---|---|
+| `en-US` | English (Estados Unidos) — predefinido |
+| `de-DE` | Deutsch (alemão) |
+| `es-ES` | Español (espanhol) |
+| `fr-FR` | Français (francês) |
+| `pt-PT` | Português (português) |
+| `it-IT` | Italiano |
+| `zh-HK` | 廣東話 (cantonês — chinês tradicional de Hong Kong) |
+| `ko-KR` | 한국어 (coreano) |
+| `hi-IN` | हिन्दी (hindi) |
+| `ru-RU` | Русский (russo) |
+| `ar-SA` | العربية (árabe — layout da direita para a esquerda) |
+| `sw-KE` | Kiswahili (suaíli) |
+| `ja-JP` | 日本語 (japonês) |
+| `ht-HT` | Kreyòl ayisyen (crioulo haitiano) |
+| `haw-US` | ʻŌlelo Hawaiʻi (havaiano) |
+| `sm-WS` | Gagana Samoa (samoano) |
+| `mi-NZ` | Te Reo Māori (maori) |
+| `af-ZA` | Afrikaans |
+| `nl-NL` | Nederlands (neerlandês) |
+| `ha-NG` | Hausa |
+| `am-ET` | አማርኛ (amárico) |
+| `yo-NG` | Yorùbá (iorubá) |
+| `bn-BD` | বাংলা (bengali) |
+| `zh-CN` | 普通话 (chinês mandarim simplificado) |
+| `ga-IE` | Gaeilge (irlandês) |
+
+O layout RTL é ativado automaticamente quando o árabe é selecionado: o elemento `<html>` recebe `dir="rtl"` e o atributo `lang` mantém a etiqueta BCP-47 completa (por exemplo, `ar-SA`) para comportamento correto no navegador.
 
 ### Registo Seguro para PII
 `LoggingHelper` efetua o hash de informações de identificação pessoal na saída de registo usando HMAC-SHA256. Uma chave estável de 32 bytes pode ser fornecida via `Logging:PiiHmacKey`.
@@ -80,7 +110,7 @@ Todos os subsistemas principais são controlados por flags booleanas em `appsett
 | Flag | Predefinição | Descrição |
 |---|---|---|
 | `EnableSession` | `true` | Sessão do servidor e cookie de sessão |
-| `EnableLocalization` | `true` | Suporte multilingue (11 idiomas) |
+| `EnableLocalization` | `true` | Suporte multilingue (en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN, ga-IE) |
 | `EnableAzureAd` | `true` | Autenticação Azure AD / OpenID Connect |
 | `EnableAuthorization` | `true` | Políticas de autorização ao nível da rota |
 | `EnableKeyVault` | `false` | Carregar certificado TLS do servidor a partir do Azure Key Vault |
