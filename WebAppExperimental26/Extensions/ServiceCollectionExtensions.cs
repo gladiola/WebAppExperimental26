@@ -65,7 +65,7 @@ namespace WebAppExperimental26.Extensions
 
         /// <summary>
         /// Configure localization for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA,
-        /// sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, and zh-CN
+        /// sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN, and ga-IE
         /// </summary>
         public static IServiceCollection AddLocalizationConfiguration(this IServiceCollection services, ILogger logger, bool enabled = true)
         {
@@ -103,6 +103,7 @@ namespace WebAppExperimental26.Extensions
                     new CultureInfo("yo-NG"),
                     new CultureInfo("bn-BD"),
                     new CultureInfo("zh-CN"),
+                    new CultureInfo("ga-IE"),
                 };
 
                 services.Configure<RequestLocalizationOptions>(options =>
@@ -112,7 +113,7 @@ namespace WebAppExperimental26.Extensions
                     options.SupportedUICultures = supportedCultures;
                 });
 
-                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN");
+                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN, ga-IE");
             }
 
             return services;

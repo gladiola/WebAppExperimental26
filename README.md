@@ -115,7 +115,7 @@ Sessions use in-process distributed memory cache with a **30-minute idle timeout
 - `SameSite = Strict`
 
 ### Localization
-The application supports **11 languages** with per-view `.resx` resource files. The active culture is determined at the request pipeline level via `RequestLocalizationOptions` (Accept-Language header, query string, or cookie). Users can switch language at any time using the language picker in the navigation bar.
+The application supports **25 languages** with per-view `.resx` resource files. The active culture is determined at the request pipeline level via `RequestLocalizationOptions` (Accept-Language header, query string, or cookie). Users can switch language at any time using the language picker in the navigation bar.
 
 | Culture Tag | Language |
 |---|---|
@@ -130,6 +130,20 @@ The application supports **11 languages** with per-view `.resx` resource files. 
 | `hi-IN` | हिन्दी (Hindi) |
 | `ru-RU` | Русский (Russian) |
 | `ar-SA` | العربية (Arabic — right-to-left layout) |
+| `sw-KE` | Kiswahili (Swahili) |
+| `ja-JP` | 日本語 (Japanese) |
+| `ht-HT` | Kreyòl ayisyen (Haitian Creole) |
+| `haw-US` | ʻŌlelo Hawaiʻi (Hawaiian) |
+| `sm-WS` | Gagana Samoa (Samoan) |
+| `mi-NZ` | Te Reo Māori (Māori) |
+| `af-ZA` | Afrikaans |
+| `nl-NL` | Nederlands (Dutch) |
+| `ha-NG` | Hausa |
+| `am-ET` | አማርኛ (Amharic) |
+| `yo-NG` | Yorùbá (Yoruba) |
+| `bn-BD` | বাংলা (Bengali) |
+| `zh-CN` | 普通话 (Mandarin Chinese — Simplified) |
+| `ga-IE` | Gaeilge (Irish) |
 
 Right-to-left (RTL) layout is activated automatically when Arabic is selected: the `<html>` element receives `dir="rtl"`, and the `lang` attribute carries the full BCP-47 culture tag (e.g. `ar-SA`) for correct browser behaviour.
 
@@ -145,7 +159,7 @@ All major subsystems are controlled by boolean feature flags in `appsettings.jso
 | Flag | Default | Description |
 |---|---|---|
 | `EnableSession` | `true` | Server-side session and session cookie |
-| `EnableLocalization` | `true` | Multi-language support (en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA) |
+| `EnableLocalization` | `true` | Multi-language support (en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN, ga-IE) |
 | `EnableAzureAd` | `true` | Azure AD / OpenID Connect authentication |
 | `EnableAuthorization` | `true` | Route-level authorization policies |
 | `EnableKeyVault` | `false` | Load TLS server cert from Azure Key Vault |
