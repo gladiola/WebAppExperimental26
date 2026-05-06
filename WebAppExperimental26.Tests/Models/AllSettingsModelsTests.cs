@@ -245,62 +245,128 @@ namespace WebAppExperimental26.Tests.Models
             }
         }
 
-        public class OcspSettingsTests
+        public class AwsCognitoSettingsTests
         {
             [Fact]
-            public void DefaultValues_AreSetCorrectly()
+            public void AllRequiredProperties_CanBeSet()
             {
-                // Act
-                var settings = new OcspSettings();
+                var settings = new AwsCognitoSettings
+                {
+                    Region = "us-east-1",
+                    UserPoolId = "us-east-1_AbCdEfGhI",
+                    AppClientId = "1abc2def3ghi4jkl5mno6pqr7",
+                    AppClientSecret = "secret123",
+                    Domain = "my-app.auth.us-east-1.amazoncognito.com"
+                };
 
-                // Assert
-                settings.EnableOcspValidation.Should().BeFalse();
-                settings.RequestTimeoutSeconds.Should().Be(30);
-                settings.MaxRetryAttempts.Should().Be(3);
-                settings.CacheDurationMinutes.Should().Be(60);
-                settings.ServerUnavailableBehavior.Should().Be("Warn");
-                settings.EnableDetailedLogging.Should().BeFalse();
-                settings.SkipValidationInDevelopment.Should().BeTrue();
+                settings.Region.Should().Be("us-east-1");
+                settings.UserPoolId.Should().Be("us-east-1_AbCdEfGhI");
+                settings.AppClientId.Should().Be("1abc2def3ghi4jkl5mno6pqr7");
+                settings.AppClientSecret.Should().Be("secret123");
+                settings.Domain.Should().Be("my-app.auth.us-east-1.amazoncognito.com");
             }
 
             [Fact]
-            public void AllProperties_CanBeSet()
+            public void DefaultCallbackPath_ShouldBeSigninAwsCognito()
             {
-                // Act
-                var settings = new OcspSettings
+                var settings = new AwsCognitoSettings
                 {
-                    EnableOcspValidation = true,
-                    OcspServerUrl = "https://ocsp.example.com",
-                    RequestTimeoutSeconds = 60,
-                    MaxRetryAttempts = 5,
-                    CacheDurationMinutes = 120,
-                    ServerUnavailableBehavior = "Fail",
-                    EnableDetailedLogging = true,
-                    SkipValidationInDevelopment = false
+                    Region = "us-east-1",
+                    UserPoolId = "us-east-1_Pool",
+                    AppClientId = "client-id",
+                    AppClientSecret = "secret",
+                    Domain = "app.auth.us-east-1.amazoncognito.com"
                 };
 
-                // Assert
-                settings.EnableOcspValidation.Should().BeTrue();
-                settings.OcspServerUrl.Should().Be("https://ocsp.example.com");
-                settings.RequestTimeoutSeconds.Should().Be(60);
-                settings.MaxRetryAttempts.Should().Be(5);
-                settings.CacheDurationMinutes.Should().Be(120);
-                settings.ServerUnavailableBehavior.Should().Be("Fail");
-                settings.EnableDetailedLogging.Should().BeTrue();
-                settings.SkipValidationInDevelopment.Should().BeFalse();
+                settings.CallbackPath.Should().Be("/signin-aws-cognito");
+                settings.SignedOutCallbackPath.Should().Be("/signout-aws-cognito");
             }
 
             [Fact]
-            public void OcspServerUrl_CanBeNull()
+            public void CallbackPath_CanBeOverridden()
             {
-                // Act
-                var settings = new OcspSettings
+                var settings = new AwsCognitoSettings
                 {
-                    OcspServerUrl = null
+                    Region = "us-east-1",
+                    UserPoolId = "us-east-1_Pool",
+                    AppClientId = "client-id",
+                    AppClientSecret = "secret",
+                    Domain = "app.auth.us-east-1.amazoncognito.com",
+                    CallbackPath = "/custom-callback",
+                    SignedOutCallbackPath = "/custom-signout"
                 };
 
-                // Assert
-                settings.OcspServerUrl.Should().BeNull();
+                settings.CallbackPath.Should().Be("/custom-callback");
+                settings.SignedOutCallbackPath.Should().Be("/custom-signout");
+            }
+        }
+
+        public class GcpIdentitySettingsTests
+        {
+            [Fact]
+            public void AllRequiredProperties_CanBeSet()
+            {
+                var settings = new GcpIdentitySettings
+                {
+                    ClientId = "123456789-abcdefghij.apps.googleusercontent.com",
+                    ClientSecret = "gcp-secret"
+                };
+
+                settings.ClientId.Should().Be("123456789-abcdefghij.apps.googleusercontent.com");
+                settings.ClientSecret.Should().Be("gcp-secret");
+            }
+
+            [Fact]
+            public void DefaultCallbackPath_ShouldBeSigninGcp()
+            {
+                var settings = new GcpIdentitySettings
+                {
+                    ClientId = "client-id",
+                    ClientSecret = "secret"
+                };
+
+                settings.CallbackPath.Should().Be("/signin-gcp");
+                settings.SignedOutCallbackPath.Should().Be("/signout-gcp");
+            }
+
+            [Fact]
+            public void ProjectId_DefaultsToEmpty()
+            {
+                var settings = new GcpIdentitySettings
+                {
+                    ClientId = "client-id",
+                    ClientSecret = "secret"
+                };
+
+                settings.ProjectId.Should().BeEmpty();
+            }
+
+            [Fact]
+            public void ProjectId_CanBeSet()
+            {
+                var settings = new GcpIdentitySettings
+                {
+                    ClientId = "client-id",
+                    ClientSecret = "secret",
+                    ProjectId = "my-project-123456"
+                };
+
+                settings.ProjectId.Should().Be("my-project-123456");
+            }
+
+            [Fact]
+            public void CallbackPath_CanBeOverridden()
+            {
+                var settings = new GcpIdentitySettings
+                {
+                    ClientId = "client-id",
+                    ClientSecret = "secret",
+                    CallbackPath = "/my-gcp-callback",
+                    SignedOutCallbackPath = "/my-gcp-signout"
+                };
+
+                settings.CallbackPath.Should().Be("/my-gcp-callback");
+                settings.SignedOutCallbackPath.Should().Be("/my-gcp-signout");
             }
         }
     }

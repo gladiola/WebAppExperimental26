@@ -76,10 +76,10 @@ namespace WebAppExperimental26
             builder.Services.AddFeatureFlags(builder.Configuration);
             var featureFlags = builder.Configuration.GetSection("FeatureFlags").Get<FeatureFlags>() ?? new FeatureFlags();
 
-            logger.LogInformation("Feature Flags Loaded: AzureAd={AzureAd}, CosmosDb={CosmosDb}, BlobStorage={BlobStorage}, AwsSecretsManager={AwsSM}, AwsDynamoDb={AwsDynamo}, GcpSecretManager={GcpSM}, GcpFirestore={GcpFirestore}",
+            logger.LogInformation("Feature Flags Loaded: AzureAd={AzureAd}, CosmosDb={CosmosDb}, BlobStorage={BlobStorage}, AwsSecretsManager={AwsSM}, AwsDynamoDb={AwsDynamo}, AwsCognito={AwsCognito}, GcpSecretManager={GcpSM}, GcpFirestore={GcpFirestore}, GcpIdentity={GcpIdentity}",
                 featureFlags.EnableAzureAd, featureFlags.EnableCosmosDb, featureFlags.EnableBlobStorage,
-                featureFlags.EnableAwsSecretsManager, featureFlags.EnableAwsDynamoDb,
-                featureFlags.EnableGcpSecretManager, featureFlags.EnableGcpFirestore);
+                featureFlags.EnableAwsSecretsManager, featureFlags.EnableAwsDynamoDb, featureFlags.EnableAwsCognito,
+                featureFlags.EnableGcpSecretManager, featureFlags.EnableGcpFirestore, featureFlags.EnableGcpIdentity);
 
             // Core services
             builder.Services.AddSingleton<ILoggerFactory, LoggerFactory>();
@@ -172,6 +172,24 @@ namespace WebAppExperimental26
                     builder.Configuration,
                     logger,
                     featureFlags.EnableGcpFirestore);
+            }
+
+            // Phase 2: AWS Cognito Identity Management (Optional)
+            if (featureFlags.EnableAwsCognito)
+            {
+                builder.Services.AddAwsCognitoAuthentication(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableAwsCognito);
+            }
+
+            // Phase 2: GCP Identity Platform (Optional)
+            if (featureFlags.EnableGcpIdentity)
+            {
+                builder.Services.AddGcpIdentityAuthentication(
+                    builder.Configuration,
+                    logger,
+                    featureFlags.EnableGcpIdentity);
             }
 
             logger.LogInformation("=== Service Configuration Complete ===");

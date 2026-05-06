@@ -90,6 +90,24 @@ The underlying `GcpSecretManagerOperations` class logs a warning and returns emp
 ### Google Cloud Firestore
 When enabled, `GcpFirestoreService` wraps a `FirestoreDb` singleton (the GCP equivalent of Azure Cosmos DB). At startup the application builds a Firestore client bound to the configured project ID and collection name. The service exposes `GetCollection()`, `GetCollectionName()`, and `GetDatabase()` for downstream use. Authentication uses ADC or a service-account JSON key file.
 
+### AWS Cognito Identity Management
+When enabled, `AddAwsCognitoAuthentication` configures OpenID Connect authentication against an **AWS Cognito User Pool** — the AWS equivalent of Microsoft Entra ID / Azure AD. The middleware consumes Cognito's standards-compliant OIDC discovery endpoint:
+
+```
+https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration
+```
+
+Configuration is under the `AwsCognito` section: `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret` (store in User Secrets), and `Domain` (the Cognito hosted-UI domain). The callback path defaults to `/signin-aws-cognito`.
+
+### GCP Identity Platform
+When enabled, `AddGcpIdentityAuthentication` configures OpenID Connect authentication using **Google's OAuth 2.0 / OpenID Connect** endpoint — the GCP equivalent of Microsoft Entra ID / Azure AD. The middleware consumes Google's standard OIDC discovery endpoint:
+
+```
+https://accounts.google.com/.well-known/openid-configuration
+```
+
+Configuration is under the `GcpIdentity` section: `ClientId`, `ClientSecret` (store in User Secrets), and optional `ProjectId` for logging. The callback path defaults to `/signin-gcp`. Obtain a client ID and secret from the **Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs**.
+
 ### Secure Session Management
 Sessions use in-process distributed memory cache with a **30-minute idle timeout**. Session cookies are configured as:
 - `HttpOnly = true`
@@ -140,8 +158,10 @@ All major subsystems are controlled by boolean feature flags in `appsettings.jso
 | `EnableOcspValidation` | `false` | OCSP certificate revocation check (stub) |
 | `EnableAwsSecretsManager` | `false` | AWS Secrets Manager service (stub) |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB service |
+| `EnableAwsCognito` | `false` | AWS Cognito OpenID Connect identity management |
 | `EnableGcpSecretManager` | `false` | GCP Secret Manager service (stub) |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore service |
+| `EnableGcpIdentity` | `false` | GCP Identity Platform (Google OAuth 2.0 / OIDC) |
 
 ---
 
@@ -153,8 +173,8 @@ The following must be in place before deploying on either platform:
 2. **Azure Key Vault** – containing the PFX server certificate as a secret. The app registration must have `Get` permission on secrets.
 3. **Azure Cosmos DB account** (optional) – with a database and container matching your configuration.
 4. **Azure Blob Storage account** (optional) – with a connection string.
-5. **AWS credentials** (optional) – an IAM user or role with `secretsmanager:GetSecretValue` and/or `dynamodb:DescribeTable` permissions for the AWS features.
-6. **GCP service account or ADC** (optional) – a service account with `secretmanager.versions.access` and/or `datastore.databases.get` IAM roles for the GCP features.
+5. **AWS credentials** (optional) – an IAM user or role with `secretsmanager:GetSecretValue` and/or `dynamodb:DescribeTable` permissions for the AWS features. For AWS Cognito, create a User Pool, an App Client, and enable the hosted UI with the required OAuth 2.0 scopes.
+6. **GCP service account or ADC** (optional) – a service account with `secretmanager.versions.access` and/or `datastore.databases.get` IAM roles for the GCP features. For GCP Identity, create OAuth 2.0 credentials in the Google Cloud Console and enable the Google Identity API.
 7. **.NET 9 SDK / Runtime** – version 9.0 or later.
 
 ---
@@ -389,8 +409,10 @@ Copy `appsettings.template.json` to `appsettings.json` and replace all `{{PLACEH
 | `Logging` | `PiiHmacKey` | 32-byte base64 HMAC key for PII hashing in logs |
 | `AwsSecretsManager` | `Region`, `CertificateSecretName`, `IVSecretName`, `NonceKeySecretName`, `AccessKeyId`, `SecretAccessKey` | AWS Secrets Manager (stub) |
 | `AwsDynamoDb` | `Region`, `TableName`, `AccessKeyId`, `SecretAccessKey` | Amazon DynamoDB |
+| `AwsCognito` | `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret`, `Domain`, `CallbackPath` | AWS Cognito OIDC identity |
 | `GcpSecretManager` | `ProjectId`, `CertificateSecretId`, `IVSecretId`, `NonceKeySecretId`, `CredentialFilePath` | GCP Secret Manager (stub) |
 | `GcpFirestore` | `ProjectId`, `DatabaseId`, `CollectionName`, `CredentialFilePath` | Google Cloud Firestore |
+| `GcpIdentity` | `ClientId`, `ClientSecret`, `ProjectId`, `CallbackPath` | GCP Identity Platform (Google OAuth 2.0 / OIDC) |
 
 Generate encryption keys and IVs using the included PowerShell script:
 
@@ -414,9 +436,14 @@ dotnet user-secrets set "AwsSecretsManager:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
 dotnet user-secrets set "AwsSecretsManager:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
 dotnet user-secrets set "AwsDynamoDb:AccessKeyId" "YOUR_AWS_ACCESS_KEY_ID"
 dotnet user-secrets set "AwsDynamoDb:SecretAccessKey" "YOUR_AWS_SECRET_ACCESS_KEY"
+dotnet user-secrets set "AwsCognito:AppClientSecret" "YOUR_COGNITO_APP_CLIENT_SECRET"
 ```
 
 For GCP services, set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable or use the `CredentialFilePath` setting to point to a service-account JSON key file.
+
+```bash
+dotnet user-secrets set "GcpIdentity:ClientSecret" "YOUR_GOOGLE_CLIENT_SECRET"
+```
 
 ---
 
@@ -446,4 +473,6 @@ The `SupportingScripts/` directory contains PowerShell utilities:
 - The `Server` response header is masked to `webserver` to avoid exposing platform information.
 - Review `AllowSelfSignedCertificates = false` (default) before deploying mTLS; self-signed certificates should only be used in development.
 - AWS `AccessKeyId` and `SecretAccessKey` must **never** appear in `appsettings.json` — use User Secrets, environment variables, or IAM instance roles.
+- For **AWS Cognito**, prefer IAM roles or Cognito Identity Pools over static credentials; never commit `AppClientSecret` to source control.
 - GCP credentials should use **Application Default Credentials (ADC)** (e.g., Workload Identity on GKE, or `gcloud auth application-default login` locally) rather than committing service-account JSON files.
+- For **GCP Identity**, the `ClientSecret` must be stored in User Secrets or environment variables — never in `appsettings.json`.

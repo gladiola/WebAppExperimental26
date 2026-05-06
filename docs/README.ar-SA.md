@@ -52,6 +52,16 @@
 ### GCP Firestore
 عند التفعيل، يُنشئ `GcpFirestoreService` عميل Firestore عند بدء التشغيل. التكوين في قسم `GcpFirestore` مع المعاملات `ProjectId` و`DatabaseId` (الافتراضي: "(default)") و`CollectionName` و`CredentialFilePath` (اختياري).
 
+### إدارة هوية AWS Cognito
+عند التفعيل، يُهيئ `AddAwsCognitoAuthentication` مصادقة OpenID Connect مقابل **مجموعة مستخدمي Amazon Cognito** — المعادل لـ Microsoft Entra ID / Azure AD في AWS. نقطة اكتشاف OIDC هي:
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+التكوين في قسم `AwsCognito`: `Region` و`UserPoolId` و`AppClientId` و`AppClientSecret` (تخزين في Secrets المستخدم) و`Domain` (نطاق واجهة Cognito المستضافة).
+
+### منصة هوية GCP
+عند التفعيل، يُهيئ `AddGcpIdentityAuthentication` مصادقة OpenID Connect باستخدام **Google OAuth 2.0 / OIDC** — المعادل لـ Microsoft Entra ID / Azure AD في GCP. نقطة اكتشاف OIDC هي:
+`https://accounts.google.com/.well-known/openid-configuration`
+التكوين في قسم `GcpIdentity`: `ClientId` و`ClientSecret` (تخزين في Secrets المستخدم) و`ProjectId` اختياري. احصل على بيانات الاعتماد من **Google Cloud Console ← APIs والخدمات ← بيانات الاعتماد**.
+
 ### إدارة الجلسات الآمنة
 تستخدم الجلسات ذاكرة تخزين مؤقت موزعة داخل العملية مع **مهلة خمول مدتها 30 دقيقة**. تُضبط ملفات تعريف ارتباط الجلسة على `HttpOnly` و`Secure = Always` و`SameSite = Strict`.
 
@@ -81,8 +91,10 @@
 | `EnableCosmosDb` | `false` | خدمة Azure Cosmos DB |
 | `EnableAwsSecretsManager` | `false` | نموذج أولي لـ AWS Secrets Manager |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | إدارة هوية AWS Cognito (OpenID Connect) |
 | `EnableGcpSecretManager` | `false` | نموذج أولي لـ GCP Secret Manager |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | منصة هوية GCP (Google OAuth 2.0 / OIDC) |
 | `EnableMtls` | `false` | اشتراط شهادات TLS للعميل |
 | `EnableOcspValidation` | `false` | فحص إلغاء شهادة OCSP (نموذج أولي) |
 

@@ -52,6 +52,16 @@ Cuando está habilitado, `GcpSecretManagerOperationsService` obtiene secretos de
 ### GCP Firestore
 Cuando está habilitado, `GcpFirestoreService` construye el cliente Firestore al inicio. Configuración en la sección `GcpFirestore` con los parámetros `ProjectId`, `DatabaseId` (predeterminado: "(default)"), `CollectionName` y `CredentialFilePath` (opcional).
 
+### Gestión de identidad AWS Cognito
+Cuando está habilitado, `AddAwsCognitoAuthentication` configura la autenticación OpenID Connect contra un **Amazon Cognito User Pool** — el equivalente de AWS a Microsoft Entra ID / Azure AD. El punto de descubrimiento OIDC es:
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+Configuración en la sección `AwsCognito`: `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret` (almacenar en Secretos de Usuario) y `Domain` (dominio de la interfaz alojada de Cognito).
+
+### GCP Identity Platform
+Cuando está habilitado, `AddGcpIdentityAuthentication` configura la autenticación OpenID Connect usando **Google OAuth 2.0 / OIDC** — el equivalente de GCP a Microsoft Entra ID / Azure AD. El punto de descubrimiento OIDC es:
+`https://accounts.google.com/.well-known/openid-configuration`
+Configuración en la sección `GcpIdentity`: `ClientId`, `ClientSecret` (almacenar en Secretos de Usuario) y `ProjectId` opcional. Obtener las credenciales en la **Consola de Google Cloud → APIs y servicios → Credenciales**.
+
 ### Gestión de sesiones segura
 Las sesiones utilizan una caché de memoria distribuida en proceso con un **tiempo de espera de inactividad de 30 minutos**. Las cookies de sesión se configuran como `HttpOnly`, `Secure = Always` y `SameSite = Strict`.
 
@@ -81,8 +91,10 @@ Todos los subsistemas principales están controlados por flags booleanas en `app
 | `EnableCosmosDb` | `false` | Servicio Azure Cosmos DB |
 | `EnableAwsSecretsManager` | `false` | Stub AWS Secrets Manager |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | Gestión de identidad AWS Cognito (OpenID Connect) |
 | `EnableGcpSecretManager` | `false` | Stub GCP Secret Manager |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | GCP Identity Platform (Google OAuth 2.0 / OIDC) |
 | `EnableMtls` | `false` | Requerir certificados TLS de cliente |
 | `EnableOcspValidation` | `false` | Verificación de revocación OCSP (stub) |
 

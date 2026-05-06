@@ -52,6 +52,16 @@
 ### GCP Firestore
 При включении `GcpFirestoreService` создаёт клиент Firestore при запуске. Конфигурация в разделе `GcpFirestore` с параметрами `ProjectId`, `DatabaseId` (по умолчанию: "(default)"), `CollectionName` и `CredentialFilePath` (необязательно).
 
+### Управление идентификацией AWS Cognito
+При включении `AddAwsCognitoAuthentication` настраивает аутентификацию OpenID Connect против **Amazon Cognito User Pool** — аналога Microsoft Entra ID / Azure AD в AWS. Конечная точка обнаружения OIDC:
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+Конфигурация в разделе `AwsCognito`: `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret` (хранить в User Secrets) и `Domain` (домен хостируемого интерфейса Cognito).
+
+### GCP Identity Platform
+При включении `AddGcpIdentityAuthentication` настраивает аутентификацию OpenID Connect через **Google OAuth 2.0 / OIDC** — аналог Microsoft Entra ID / Azure AD в GCP. Конечная точка обнаружения OIDC:
+`https://accounts.google.com/.well-known/openid-configuration`
+Конфигурация в разделе `GcpIdentity`: `ClientId`, `ClientSecret` (хранить в User Secrets) и необязательный `ProjectId`. Получите учётные данные в **Google Cloud Console → API и сервисы → Учётные данные**.
+
 ### Безопасное управление сеансами
 Сеансы используют распределённый кэш в памяти с **30-минутным таймаутом простоя**. Куки сеанса настроены как `HttpOnly`, `Secure = Always` и `SameSite = Strict`.
 
@@ -81,8 +91,10 @@
 | `EnableCosmosDb` | `false` | Сервис Azure Cosmos DB |
 | `EnableAwsSecretsManager` | `false` | AWS Secrets Manager (заглушка) |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | Управление идентификацией AWS Cognito (OpenID Connect) |
 | `EnableGcpSecretManager` | `false` | GCP Secret Manager (заглушка) |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | GCP Identity Platform (Google OAuth 2.0 / OIDC) |
 | `EnableMtls` | `false` | Требование клиентских TLS-сертификатов |
 | `EnableOcspValidation` | `false` | Проверка отзыва сертификатов OCSP (заглушка) |
 
