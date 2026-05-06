@@ -125,17 +125,19 @@ public class NonceRequestMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         // Get EXISTING nonce from catalog (don't generate new one)
-        var nonce = _nonceCatalogService.GetANonce("CSPNonce");
+        var catalogNonce = _nonceCatalogService.GetANonce("CSPNonce");
+        var nonceToUse = catalogNonce;
 
         // If no nonce exists yet (first request), generate a secure fallback
-        if (string.IsNullOrEmpty(nonce))
+        if (string.IsNullOrEmpty(nonceToUse))
         {
-            nonce = Nonce.GenerateSecureNonce();
+            var fallbackNonce = Nonce.GenerateSecureNonce();
+            nonceToUse = fallbackNonce;
             _logger.LogWarning("No nonce available yet, generated secure fallback nonce");
         }
 
         // Store in context
-        context.Items["Nonce"] = nonce;
+        context.Items["Nonce"] = nonceToUse;
 
         await _next(context);
     }
