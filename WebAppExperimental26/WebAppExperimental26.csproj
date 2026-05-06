@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.18.1" />
+    <PackageReference Include="AWSSDK.SecretsManager" Version="4.0.4.20" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="4.2.0" />
+    <PackageReference Include="Google.Cloud.SecretManager.V1" Version="2.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.9" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="9.0.0" />
