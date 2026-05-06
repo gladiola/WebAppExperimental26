@@ -64,7 +64,8 @@ namespace WebAppExperimental26.Extensions
         }
 
         /// <summary>
-        /// Configure localization for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, and ar-SA
+        /// Configure localization for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA,
+        /// sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, and zh-CN
         /// </summary>
         public static IServiceCollection AddLocalizationConfiguration(this IServiceCollection services, ILogger logger, bool enabled = true)
         {
@@ -89,6 +90,19 @@ namespace WebAppExperimental26.Extensions
                     new CultureInfo("hi-IN"),
                     new CultureInfo("ru-RU"),
                     new CultureInfo("ar-SA"),
+                    new CultureInfo("sw-KE"),
+                    new CultureInfo("ja-JP"),
+                    new CultureInfo("ht-HT"),
+                    new CultureInfo("haw-US"),
+                    new CultureInfo("sm-WS"),
+                    new CultureInfo("mi-NZ"),
+                    new CultureInfo("af-ZA"),
+                    new CultureInfo("nl-NL"),
+                    new CultureInfo("ha-NG"),
+                    new CultureInfo("am-ET"),
+                    new CultureInfo("yo-NG"),
+                    new CultureInfo("bn-BD"),
+                    new CultureInfo("zh-CN"),
                 };
 
                 services.Configure<RequestLocalizationOptions>(options =>
@@ -98,7 +112,7 @@ namespace WebAppExperimental26.Extensions
                     options.SupportedUICultures = supportedCultures;
                 });
 
-                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA");
+                logger.LogInformation("Localization configured for en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN");
             }
 
             return services;
