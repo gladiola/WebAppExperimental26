@@ -66,7 +66,7 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 세션은 **30분 유휴 시간 초과**를 사용하는 프로세스 내 분산 메모리 캐시를 사용합니다. 세션 쿠키는 `HttpOnly`, `Secure = Always`, `SameSite = Strict`로 구성됩니다.
 
 ### 현지화
-애플리케이션은 **11개 언어**를 지원합니다: en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA. 아랍어에는 자동 RTL 레이아웃 전환이 포함됩니다.
+애플리케이션은 **25개 언어**를 지원합니다: en-US, de-DE, es-ES, fr-FR, pt-PT, it-IT, zh-HK, ko-KR, hi-IN, ru-RU, ar-SA, sw-KE, ja-JP, ht-HT, haw-US, sm-WS, mi-NZ, af-ZA, nl-NL, ha-NG, am-ET, yo-NG, bn-BD, zh-CN, ga-IE. 아랍어에는 자동 RTL 레이아웃 전환이 포함됩니다.
 
 ### PII 안전 로깅
 `LoggingHelper`는 HMAC-SHA256을 사용하여 로그 출력의 개인 식별 정보를 해시합니다. `Logging:PiiHmacKey`를 통해 안정적인 32바이트 키를 제공할 수 있습니다.
@@ -80,7 +80,7 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 | 플래그 | 기본값 | 설명 |
 |---|---|---|
 | `EnableSession` | `true` | 서버 측 세션 및 세션 쿠키 |
-| `EnableLocalization` | `true` | 다국어 지원(11개 언어) |
+| `EnableLocalization` | `true` | 다국어 지원(25개 언어) |
 | `EnableAzureAd` | `true` | Azure AD / OpenID Connect 인증 |
 | `EnableAuthorization` | `true` | 경로 수준 권한 부여 정책 |
 | `EnableKeyVault` | `false` | Azure Key Vault에서 TLS 서버 인증서 로드 |
