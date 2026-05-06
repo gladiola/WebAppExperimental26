@@ -298,16 +298,16 @@ curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
 
 Copie `appsettings.template.json` a `appsettings.json` y reemplace todos los valores `{{PLACEHOLDER}}`.
 
-| Section | Key | Description |
+| Sección | Clave | Descripción |
 |---|---|---|
-| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | Azure AD app registration |
-| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault and certificate name |
-| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | mTLS client cert policy |
-| `NonceEncryption` | `Key`, `IV` | 32-byte key and 16-byte IV for nonce encryption (base64) |
-| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage connection |
-| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB connection |
-| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP validation (stub) |
-| `Logging` | `PiiHmacKey` | 32-byte base64 HMAC key for PII hashing in logs |
+| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | Registro de aplicación Azure AD |
+| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault y nombre del certificado |
+| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | Política de certificados de cliente mTLS |
+| `NonceEncryption` | `Key`, `IV` | Clave de 32 bytes e IV de 16 bytes para cifrado de nonce (base64) |
+| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Conexión de Blob Storage |
+| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Conexión de Cosmos DB |
+| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | Validación OCSP (stub) |
+| `Logging` | `PiiHmacKey` | Clave HMAC base64 de 32 bytes para el hash de PII en los registros |
 
 Genere claves de cifrado e IVs usando el script de PowerShell incluido:
 
@@ -330,16 +330,16 @@ dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
 
 El directorio `SupportingScripts/` contiene utilidades de PowerShell:
 
-| Script | Purpose |
+| Script | Propósito |
 |---|---|
-| `IVandKeySampleGenerator.ps1` | Generate a random 32-byte AES key and 16-byte IV (base64) |
-| `HashInlineScriptPowerShell.ps1` | Compute SHA-256 hashes for inline scripts (for CSP allow-listing) |
-| `HashInlineScriptPowerShellBase64Output.ps1` | Same as above, outputs hashes in base64 format |
-| `CertificateUploaderToAzureExample.ps1` | Upload a PFX certificate to Azure Key Vault |
-| `CheckRoles.ps1` | Verify Azure RBAC role assignments for the app |
-| `ExportResourceGroups.ps1` | Export Azure resource group configurations |
-| `TroubleshootingCosmosDBInfo.ps1` | Diagnose Cosmos DB connectivity |
-| `SetupFromTemplate.ps1` | Automate initial configuration from `appsettings.template.json` |
+| `IVandKeySampleGenerator.ps1` | Generar una clave AES aleatoria de 32 bytes y un IV de 16 bytes (base64) |
+| `HashInlineScriptPowerShell.ps1` | Calcular hashes SHA-256 para scripts en línea (para listas de permitidos de CSP) |
+| `HashInlineScriptPowerShellBase64Output.ps1` | Igual que el anterior, genera hashes en formato base64 |
+| `CertificateUploaderToAzureExample.ps1` | Subir un certificado PFX a Azure Key Vault |
+| `CheckRoles.ps1` | Verificar las asignaciones de roles RBAC de Azure para la aplicación |
+| `ExportResourceGroups.ps1` | Exportar configuraciones de grupos de recursos de Azure |
+| `TroubleshootingCosmosDBInfo.ps1` | Diagnosticar conectividad de Cosmos DB |
+| `SetupFromTemplate.ps1` | Automatizar la configuración inicial desde `appsettings.template.json` |
 
 ---
 

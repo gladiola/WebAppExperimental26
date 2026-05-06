@@ -298,16 +298,16 @@ curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
 
 將 `appsettings.template.json` 複製到 `appsettings.json` 並替換所有 `{{PLACEHOLDER}}` 值。
 
-| Section | Key | Description |
+| 區段 | 鍵 | 描述 |
 |---|---|---|
-| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | Azure AD app registration |
-| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault and certificate name |
-| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | mTLS client cert policy |
-| `NonceEncryption` | `Key`, `IV` | 32-byte key and 16-byte IV for nonce encryption (base64) |
-| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage connection |
-| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB connection |
-| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP validation (stub) |
-| `Logging` | `PiiHmacKey` | 32-byte base64 HMAC key for PII hashing in logs |
+| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | Azure AD 應用程式註冊 |
+| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault 和憑證名稱 |
+| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | mTLS 客戶端憑證政策 |
+| `NonceEncryption` | `Key`, `IV` | 用於 Nonce 加密的 32 字節密鑰和 16 字節 IV（base64） |
+| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage 連接 |
+| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB 連接 |
+| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP 驗證（Stub） |
+| `Logging` | `PiiHmacKey` | 用於日誌中 PII 雜湊的 32 字節 base64 HMAC 密鑰 |
 
 使用包含的 PowerShell 腳本產生加密金鑰和 IV：
 
@@ -330,16 +330,16 @@ dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
 
 `SupportingScripts/` 目錄包含 PowerShell 公用程式：
 
-| Script | Purpose |
+| 腳本 | 用途 |
 |---|---|
-| `IVandKeySampleGenerator.ps1` | Generate a random 32-byte AES key and 16-byte IV (base64) |
-| `HashInlineScriptPowerShell.ps1` | Compute SHA-256 hashes for inline scripts (for CSP allow-listing) |
-| `HashInlineScriptPowerShellBase64Output.ps1` | Same as above, outputs hashes in base64 format |
-| `CertificateUploaderToAzureExample.ps1` | Upload a PFX certificate to Azure Key Vault |
-| `CheckRoles.ps1` | Verify Azure RBAC role assignments for the app |
-| `ExportResourceGroups.ps1` | Export Azure resource group configurations |
-| `TroubleshootingCosmosDBInfo.ps1` | Diagnose Cosmos DB connectivity |
-| `SetupFromTemplate.ps1` | Automate initial configuration from `appsettings.template.json` |
+| `IVandKeySampleGenerator.ps1` | 生成隨機 32 字節 AES 密鑰和 16 字節 IV（base64） |
+| `HashInlineScriptPowerShell.ps1` | 計算內聯腳本的 SHA-256 雜湊值（用於 CSP 白名單） |
+| `HashInlineScriptPowerShellBase64Output.ps1` | 同上，以 base64 格式輸出雜湊值 |
+| `CertificateUploaderToAzureExample.ps1` | 將 PFX 憑證上傳至 Azure Key Vault |
+| `CheckRoles.ps1` | 驗證應用程式的 Azure RBAC 角色指派 |
+| `ExportResourceGroups.ps1` | 匯出 Azure 資源群組設定 |
+| `TroubleshootingCosmosDBInfo.ps1` | 診斷 Cosmos DB 連接問題 |
+| `SetupFromTemplate.ps1` | 從 `appsettings.template.json` 自動化初始設定 |
 
 ---
 
