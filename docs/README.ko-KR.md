@@ -82,9 +82,264 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 
 ---
 
+## 설치 – Windows Azure(App Service)
+
+### 1. Azure 리소스 만들기
+
+```powershell
+# Log in
+az login
+
+# Create a resource group
+az group create --name MyResourceGroup --location eastus
+
+# Create an App Service plan (Linux or Windows)
+az appservice plan create --name MyPlan --resource-group MyResourceGroup --sku B1 --is-linux
+
+# Create the web app (.NET 9)
+az webapp create --name MyWebApp26 --resource-group MyResourceGroup \
+  --plan MyPlan --runtime "DOTNETCORE:9.0"
+```
+
+### 2. Azure AD 애플리케이션 등록
+
+[Azure Portal](https://portal.azure.com)에서:
+1. **Microsoft Entra ID → 앱 등록 → 새 등록**으로 이동합니다.
+2. 리디렉션 URI를 `https://<your-app>.azurewebsites.net/signin-oidc`로 설정합니다.
+3. **인증서 및 비밀** 아래에서 클라이언트 비밀을 만들고 값을 복사합니다.
+4. 개요 블레이드에서 **테넌트 ID**와 **클라이언트 ID**를 기록합니다.
+
+### 3. Azure Key Vault 만들기 및 서버 인증서 업로드
+
+```powershell
+az keyvault create --name MyKeyVault26 --resource-group MyResourceGroup --location eastus
+
+# Upload your PFX as a Key Vault secret (base64-encoded)
+$pfxBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes("server.pfx"))
+az keyvault secret set --vault-name MyKeyVault26 --name "ServerCert" --value $pfxBase64
+
+# Grant the App Service Managed Identity access
+az keyvault set-policy --name MyKeyVault26 \
+  --object-id <managed-identity-object-id> \
+  --secret-permissions get list
+```
+
+### 4. 애플리케이션 설정 구성
+
+`appsettings.template.json`을 `appsettings.json`으로 복사하고 자리 표시자 값을 입력합니다. 비밀은 소스 컨트롤에 **저장해서는 안 됩니다** — App Service 애플리케이션 설정으로 설정하거나 로컬에서 User Secrets를 통해 설정합니다:
+
+```powershell
+# In Azure App Service, set secrets as app settings:
+az webapp config appsettings set --name MyWebApp26 --resource-group MyResourceGroup --settings \
+  "AzureAd__TenantId=<TENANT_ID>" \
+  "AzureAd__ClientId=<CLIENT_ID>" \
+  "AzureAd__ClientSecret=<CLIENT_SECRET>" \
+  "AzureKeyVault__KeyVaultURL=https://MyKeyVault26.vault.azure.net/" \
+  "AzureKeyVault__KeyVaultSecret=<KV_SECRET>" \
+  "AzureKeyVault__KeyVaultPassName=ServerCert" \
+  "FeatureFlags__EnableKeyVault=true" \
+  "FeatureFlags__EnableAzureAd=true"
+```
+
+### 5. 애플리케이션 배포
+
+```bash
+dotnet publish -c Release -o ./publish
+cd publish
+zip -r ../app.zip .
+az webapp deployment source config-zip \
+  --name MyWebApp26 --resource-group MyResourceGroup --src ../app.zip
+```
+
+### 6. HTTPS 및 사용자 지정 도메인 활성화(권장)
+
+```powershell
+# Force HTTPS
+az webapp update --name MyWebApp26 --resource-group MyResourceGroup --https-only true
+
+# Bind a custom domain and managed TLS certificate
+az webapp config hostname add --webapp-name MyWebApp26 --resource-group MyResourceGroup \
+  --hostname www.example.com
+az webapp config ssl bind --certificate-thumbprint <THUMBPRINT> \
+  --name MyWebApp26 --resource-group MyResourceGroup --ssl-type SNI
+```
+
+### 7. Azure App Service에서 mTLS 활성화(선택 사항)
+
+Azure App Service는 포털을 통해 클라이언트 인증서를 지원합니다:
+1. **App Service → TLS/SSL 설정 → 클라이언트 인증서**로 이동합니다.
+2. **수신 클라이언트 인증서**를 **필수**로 설정합니다.
+
+그런 다음 애플리케이션 설정에서 `FeatureFlags__EnableMtls=true`를 설정합니다.
+
+---
+
+## 설치 – Azure 서비스와 통신하는 OpenBSD 서버
+
+> **중요:** .NET 9는 OpenBSD용 공식 Microsoft 빌드가 **없습니다**. 아래 지침은 OpenBSD에서 ASP.NET Core 9 애플리케이션을 실행하면서 HTTPS를 통해 Azure 서비스와 통신하기 위해 **Linux 호환 컨테이너**([Podman](https://podman.io/) 사용, OpenBSD 패키지 트리에서 사용 가능)를 사용합니다.
+
+### 1. OpenBSD에 필수 구성 요소 설치
+
+```sh
+# As root
+pkg_add podman
+pkg_add curl git
+```
+
+OpenBSD 버전에서 Podman이나 Docker를 사용할 수 없는 경우, **Linux VM**(예: Debian/Ubuntu 게스트가 있는 vmm(4))에서 앱을 실행하고 해당 게스트 내에서 표준 Linux 배포 경로를 따르는 것을 고려하십시오.
+
+### 2. ASP.NET Core 9 런타임 이미지 가져오기
+
+```sh
+podman pull mcr.microsoft.com/dotnet/aspnet:9.0
+```
+
+### 3. 애플리케이션 빌드(Linux 또는 Windows 빌드 머신에서)
+
+.NET 9 SDK가 설치된 머신에서 Linux x64를 대상으로 하는 자체 포함 빌드를 게시합니다:
+
+```bash
+dotnet publish WebAppExperimental26/WebAppExperimental26.csproj \
+  -c Release -r linux-x64 --self-contained true -o ./publish
+```
+
+`publish/` 디렉터리를 OpenBSD 호스트로 전송합니다(예: `scp` 또는 공유 볼륨 사용).
+
+### 4. 구성 파일 만들기
+
+OpenBSD 호스트에서 프로덕션 값으로 `/etc/webappexp26/appsettings.json`을 만듭니다(파일에 비밀 없음; 대신 환경 변수 사용):
+
+```json
+{
+  "AllowedHosts": "your.hostname.example.com",
+  "FeatureFlags": {
+    "EnableAzureAd": true,
+    "EnableKeyVault": true,
+    "EnableSecurityHeaders": true,
+    "EnableMtls": false
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "TenantId": "YOUR_TENANT_ID",
+    "ClientId": "YOUR_CLIENT_ID",
+    "CallbackPath": "/signin-oidc"
+  },
+  "AzureKeyVault": {
+    "KeyVaultURL": "https://YOUR_KEYVAULT_NAME.vault.azure.net/",
+    "KeyVaultPassName": "ServerCert"
+  }
+}
+```
+
+비밀은 다음 단계에서 환경 변수로 주입됩니다.
+
+### 5. 컨테이너 실행
+
+```sh
+podman run -d \
+  --name webappexp26 \
+  -p 443:8443 \
+  -v /etc/webappexp26:/app/config:ro \
+  -v /path/to/publish:/app:ro \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e ASPNETCORE_URLS="https://+:8443" \
+  -e AzureAd__ClientSecret="YOUR_CLIENT_SECRET" \
+  -e AzureKeyVault__KeyVaultSecret="YOUR_KV_SECRET" \
+  -e Logging__PiiHmacKey="YOUR_32_BYTE_BASE64_KEY" \
+  mcr.microsoft.com/dotnet/aspnet:9.0 \
+  dotnet /app/WebAppExperimental26.dll \
+    --contentRoot /app \
+    --configDir /app/config
+```
+
+### 6. OpenBSD Packet Filter(pf) 방화벽 구성
+
+`/etc/pf.conf`에 추가하여 인바운드 HTTPS를 허용하고 Azure 엔드포인트로의 아웃바운드 연결을 허용합니다:
+
+```
+# Allow inbound HTTPS
+pass in on egress proto tcp to port 443
+
+# Allow outbound to Azure AD, Key Vault, Cosmos DB, Blob Storage
+pass out on egress proto tcp to port { 443 }
+```
+
+규칙 집합 다시 로드:
+
+```sh
+pfctl -f /etc/pf.conf
+```
+
+### 7. DNS 및 TLS 인증서 구성
+
+`AllowedHosts`의 호스트 이름이 OpenBSD 서버의 공용 IP로 확인되는지 확인합니다. Azure AD는 리디렉션 URI(`/signin-oidc`)가 HTTPS를 통해 접근 가능해야 하므로 서버 인증서를 신뢰할 수 있어야 합니다. 공용 CA의 인증서(예: `acme-client(1)`을 통한 Let's Encrypt)를 사용하거나 CA 서명 인증서를 Azure Key Vault에 업로드하고 `EnableKeyVault`를 활성화하십시오.
+
+### 8. Azure 서비스에 대한 아웃바운드 연결
+
+다음 Azure 서비스 엔드포인트는 OpenBSD 호스트에서 TCP 443을 통해 접근 가능해야 합니다:
+
+| Service | Endpoint |
+|---|---|
+| Azure AD / Microsoft Identity | `login.microsoftonline.com` |
+| Azure Key Vault | `<vault-name>.vault.azure.net` |
+| Azure Cosmos DB | `<account>.documents.azure.com` |
+| Azure Blob Storage | `<account>.blob.core.windows.net` |
+
+컨테이너를 시작하기 전에 연결을 테스트합니다:
+
+```sh
+curl -I https://login.microsoftonline.com
+curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
+```
+
+---
+
 ## 구성 참조
 
-`appsettings.template.json`을 `appsettings.json`으로 복사하고 모든 `{{PLACEHOLDER}}` 값을 교체합니다. 비밀은 **.NET User Secrets**(로컬) 또는 Azure App Settings / Key Vault References(프로덕션)에 저장하십시오 — 소스 코드에 절대 저장하지 마십시오.
+`appsettings.template.json`을 `appsettings.json`으로 복사하고 모든 `{{PLACEHOLDER}}` 값을 교체합니다.
+
+| Section | Key | Description |
+|---|---|---|
+| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | Azure AD app registration |
+| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault and certificate name |
+| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | mTLS client cert policy |
+| `NonceEncryption` | `Key`, `IV` | 32-byte key and 16-byte IV for nonce encryption (base64) |
+| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage connection |
+| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB connection |
+| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP validation (stub) |
+| `Logging` | `PiiHmacKey` | 32-byte base64 HMAC key for PII hashing in logs |
+
+포함된 PowerShell 스크립트를 사용하여 암호화 키와 IV를 생성합니다:
+
+```powershell
+.\WebAppExperimental26\SupportingScripts\IVandKeySampleGenerator.ps1
+```
+
+로컬 개발을 위해 모든 비밀을 **.NET User Secrets**에 저장합니다:
+
+```bash
+dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
+dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
+dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
+dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+```
+
+---
+
+## 지원 스크립트
+
+`SupportingScripts/` 디렉터리에는 PowerShell 유틸리티가 포함되어 있습니다:
+
+| Script | Purpose |
+|---|---|
+| `IVandKeySampleGenerator.ps1` | Generate a random 32-byte AES key and 16-byte IV (base64) |
+| `HashInlineScriptPowerShell.ps1` | Compute SHA-256 hashes for inline scripts (for CSP allow-listing) |
+| `HashInlineScriptPowerShellBase64Output.ps1` | Same as above, outputs hashes in base64 format |
+| `CertificateUploaderToAzureExample.ps1` | Upload a PFX certificate to Azure Key Vault |
+| `CheckRoles.ps1` | Verify Azure RBAC role assignments for the app |
+| `ExportResourceGroups.ps1` | Export Azure resource group configurations |
+| `TroubleshootingCosmosDBInfo.ps1` | Diagnose Cosmos DB connectivity |
+| `SetupFromTemplate.ps1` | Automate initial configuration from `appsettings.template.json` |
 
 ---
 

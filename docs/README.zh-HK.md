@@ -82,9 +82,264 @@ Session 使用進程內分散式記憶體快取，具有 **30 分鐘閒置逾時
 
 ---
 
+## 安裝 – Windows Azure（App Service）
+
+### 1. 建立 Azure 資源
+
+```powershell
+# Log in
+az login
+
+# Create a resource group
+az group create --name MyResourceGroup --location eastus
+
+# Create an App Service plan (Linux or Windows)
+az appservice plan create --name MyPlan --resource-group MyResourceGroup --sku B1 --is-linux
+
+# Create the web app (.NET 9)
+az webapp create --name MyWebApp26 --resource-group MyResourceGroup \
+  --plan MyPlan --runtime "DOTNETCORE:9.0"
+```
+
+### 2. 註冊 Azure AD 應用程式
+
+在 [Azure 入口網站](https://portal.azure.com)：
+1. 前往 **Microsoft Entra ID → 應用程式註冊 → 新增註冊**。
+2. 將重新導向 URI 設定為 `https://<your-app>.azurewebsites.net/signin-oidc`。
+3. 在 **憑證和密碼** 下，建立用戶端密碼並複製其值。
+4. 從概觀刀鋒視窗記下 **租用戶識別碼** 和 **用戶端識別碼**。
+
+### 3. 建立 Azure Key Vault 並上傳伺服器憑證
+
+```powershell
+az keyvault create --name MyKeyVault26 --resource-group MyResourceGroup --location eastus
+
+# Upload your PFX as a Key Vault secret (base64-encoded)
+$pfxBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes("server.pfx"))
+az keyvault secret set --vault-name MyKeyVault26 --name "ServerCert" --value $pfxBase64
+
+# Grant the App Service Managed Identity access
+az keyvault set-policy --name MyKeyVault26 \
+  --object-id <managed-identity-object-id> \
+  --secret-permissions get list
+```
+
+### 4. 設定應用程式設定
+
+將 `appsettings.template.json` 複製到 `appsettings.json` 並填入占位符值。機密**不得**儲存在原始碼控制中 — 將其設定為 App Service 應用程式設定或在本機透過 User Secrets 設定：
+
+```powershell
+# In Azure App Service, set secrets as app settings:
+az webapp config appsettings set --name MyWebApp26 --resource-group MyResourceGroup --settings \
+  "AzureAd__TenantId=<TENANT_ID>" \
+  "AzureAd__ClientId=<CLIENT_ID>" \
+  "AzureAd__ClientSecret=<CLIENT_SECRET>" \
+  "AzureKeyVault__KeyVaultURL=https://MyKeyVault26.vault.azure.net/" \
+  "AzureKeyVault__KeyVaultSecret=<KV_SECRET>" \
+  "AzureKeyVault__KeyVaultPassName=ServerCert" \
+  "FeatureFlags__EnableKeyVault=true" \
+  "FeatureFlags__EnableAzureAd=true"
+```
+
+### 5. 部署應用程式
+
+```bash
+dotnet publish -c Release -o ./publish
+cd publish
+zip -r ../app.zip .
+az webapp deployment source config-zip \
+  --name MyWebApp26 --resource-group MyResourceGroup --src ../app.zip
+```
+
+### 6. 啟用 HTTPS 和自訂網域（建議）
+
+```powershell
+# Force HTTPS
+az webapp update --name MyWebApp26 --resource-group MyResourceGroup --https-only true
+
+# Bind a custom domain and managed TLS certificate
+az webapp config hostname add --webapp-name MyWebApp26 --resource-group MyResourceGroup \
+  --hostname www.example.com
+az webapp config ssl bind --certificate-thumbprint <THUMBPRINT> \
+  --name MyWebApp26 --resource-group MyResourceGroup --ssl-type SNI
+```
+
+### 7. 在 Azure App Service 上啟用 mTLS（選用）
+
+Azure App Service 透過入口網站支援用戶端憑證：
+1. 前往 **App Service → TLS/SSL 設定 → 用戶端憑證**。
+2. 將 **傳入用戶端憑證** 設定為 **需要**。
+
+然後在應用程式設定中設定 `FeatureFlags__EnableMtls=true`。
+
+---
+
+## 安裝 – 與 Azure 服務通訊的 OpenBSD 伺服器
+
+> **重要：** .NET 9 **沒有**適用於 OpenBSD 的官方 Microsoft 組建。以下指示使用 **Linux 相容容器**（透過 [Podman](https://podman.io/)，可在 OpenBSD 的套件樹中取得）在 OpenBSD 上執行 ASP.NET Core 9 應用程式，同時透過 HTTPS 與 Azure 服務通訊。
+
+### 1. 在 OpenBSD 上安裝必要條件
+
+```sh
+# As root
+pkg_add podman
+pkg_add curl git
+```
+
+如果您的 OpenBSD 版本不提供 Podman 或 Docker，請考慮在 **Linux VM**（例如具有 Debian/Ubuntu Guest 的 vmm(4)）中執行應用程式，並從該 Guest 系統中遵循標準 Linux 部署路徑。
+
+### 2. 提取 ASP.NET Core 9 執行階段映像
+
+```sh
+podman pull mcr.microsoft.com/dotnet/aspnet:9.0
+```
+
+### 3. 建置應用程式（在 Linux 或 Windows 建置機器上）
+
+在安裝了 .NET 9 SDK 的機器上，發佈以 Linux x64 為目標的獨立組建：
+
+```bash
+dotnet publish WebAppExperimental26/WebAppExperimental26.csproj \
+  -c Release -r linux-x64 --self-contained true -o ./publish
+```
+
+將 `publish/` 目錄傳輸到 OpenBSD 主機（例如透過 `scp` 或共享磁碟區）。
+
+### 4. 建立設定檔
+
+在 OpenBSD 主機上，使用您的生產值建立 `/etc/webappexp26/appsettings.json`（檔案中不含機密；改用環境變數）：
+
+```json
+{
+  "AllowedHosts": "your.hostname.example.com",
+  "FeatureFlags": {
+    "EnableAzureAd": true,
+    "EnableKeyVault": true,
+    "EnableSecurityHeaders": true,
+    "EnableMtls": false
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "TenantId": "YOUR_TENANT_ID",
+    "ClientId": "YOUR_CLIENT_ID",
+    "CallbackPath": "/signin-oidc"
+  },
+  "AzureKeyVault": {
+    "KeyVaultURL": "https://YOUR_KEYVAULT_NAME.vault.azure.net/",
+    "KeyVaultPassName": "ServerCert"
+  }
+}
+```
+
+機密將在下一步中作為環境變數注入。
+
+### 5. 執行容器
+
+```sh
+podman run -d \
+  --name webappexp26 \
+  -p 443:8443 \
+  -v /etc/webappexp26:/app/config:ro \
+  -v /path/to/publish:/app:ro \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e ASPNETCORE_URLS="https://+:8443" \
+  -e AzureAd__ClientSecret="YOUR_CLIENT_SECRET" \
+  -e AzureKeyVault__KeyVaultSecret="YOUR_KV_SECRET" \
+  -e Logging__PiiHmacKey="YOUR_32_BYTE_BASE64_KEY" \
+  mcr.microsoft.com/dotnet/aspnet:9.0 \
+  dotnet /app/WebAppExperimental26.dll \
+    --contentRoot /app \
+    --configDir /app/config
+```
+
+### 6. 設定 OpenBSD 封包過濾器 (pf) 防火牆
+
+新增至 `/etc/pf.conf` 以允許傳入的 HTTPS 並允許傳出連線至 Azure 端點：
+
+```
+# Allow inbound HTTPS
+pass in on egress proto tcp to port 443
+
+# Allow outbound to Azure AD, Key Vault, Cosmos DB, Blob Storage
+pass out on egress proto tcp to port { 443 }
+```
+
+重新載入規則集：
+
+```sh
+pfctl -f /etc/pf.conf
+```
+
+### 7. 設定 DNS 和 TLS 憑證
+
+確保 `AllowedHosts` 中的主機名稱解析為 OpenBSD 伺服器的公用 IP。Azure AD 要求重新導向 URI（`/signin-oidc`）可透過 HTTPS 存取，因此伺服器憑證必須受信任。使用來自公用 CA 的憑證（例如透過 `acme-client(1)` 使用 Let's Encrypt），或將 CA 簽署的憑證上傳至 Azure Key Vault 並啟用 `EnableKeyVault`。
+
+### 8. 對 Azure 服務的傳出連線
+
+以下 Azure 服務端點必須能從 OpenBSD 主機透過 TCP 443 存取：
+
+| Service | Endpoint |
+|---|---|
+| Azure AD / Microsoft Identity | `login.microsoftonline.com` |
+| Azure Key Vault | `<vault-name>.vault.azure.net` |
+| Azure Cosmos DB | `<account>.documents.azure.com` |
+| Azure Blob Storage | `<account>.blob.core.windows.net` |
+
+在啟動容器之前測試連線：
+
+```sh
+curl -I https://login.microsoftonline.com
+curl -I https://YOUR_KEYVAULT_NAME.vault.azure.net
+```
+
+---
+
 ## 設定參考
 
-將 `appsettings.template.json` 複製到 `appsettings.json` 並替換所有 `{{PLACEHOLDER}}` 值。將機密存儲在 **.NET User Secrets**（本機）或 Azure App Settings / Key Vault References（生產環境）中，切勿存入原始碼。
+將 `appsettings.template.json` 複製到 `appsettings.json` 並替換所有 `{{PLACEHOLDER}}` 值。
+
+| Section | Key | Description |
+|---|---|---|
+| `AzureAd` | `TenantId`, `ClientId`, `ClientSecret` | Azure AD app registration |
+| `AzureKeyVault` | `KeyVaultURL`, `KeyVaultSecret`, `KeyVaultPassName` | Key Vault and certificate name |
+| `MtlsSettings` | `RequireClientCertificate`, `AllowedIssuers` | mTLS client cert policy |
+| `NonceEncryption` | `Key`, `IV` | 32-byte key and 16-byte IV for nonce encryption (base64) |
+| `BlobSettings` | `BlobConnectionString`, `MaxAttachments` | Blob Storage connection |
+| `CosmosDb` | `CosmosConnectionString`, `DatabaseName`, `ContainerName` | Cosmos DB connection |
+| `OcspSettings` | `OcspServerUrl`, `CacheDurationMinutes` | OCSP validation (stub) |
+| `Logging` | `PiiHmacKey` | 32-byte base64 HMAC key for PII hashing in logs |
+
+使用包含的 PowerShell 腳本產生加密金鑰和 IV：
+
+```powershell
+.\WebAppExperimental26\SupportingScripts\IVandKeySampleGenerator.ps1
+```
+
+將所有機密儲存在 **.NET User Secrets** 中以用於本機開發：
+
+```bash
+dotnet user-secrets set "AzureAd:ClientSecret" "YOUR_SECRET"
+dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "YOUR_KV_SECRET"
+dotnet user-secrets set "NonceEncryption:Key" "YOUR_BASE64_KEY"
+dotnet user-secrets set "NonceEncryption:IV" "YOUR_BASE64_IV"
+```
+
+---
+
+## 支援腳本
+
+`SupportingScripts/` 目錄包含 PowerShell 公用程式：
+
+| Script | Purpose |
+|---|---|
+| `IVandKeySampleGenerator.ps1` | Generate a random 32-byte AES key and 16-byte IV (base64) |
+| `HashInlineScriptPowerShell.ps1` | Compute SHA-256 hashes for inline scripts (for CSP allow-listing) |
+| `HashInlineScriptPowerShellBase64Output.ps1` | Same as above, outputs hashes in base64 format |
+| `CertificateUploaderToAzureExample.ps1` | Upload a PFX certificate to Azure Key Vault |
+| `CheckRoles.ps1` | Verify Azure RBAC role assignments for the app |
+| `ExportResourceGroups.ps1` | Export Azure resource group configurations |
+| `TroubleshootingCosmosDBInfo.ps1` | Diagnose Cosmos DB connectivity |
+| `SetupFromTemplate.ps1` | Automate initial configuration from `appsettings.template.json` |
 
 ---
 
