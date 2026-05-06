@@ -52,6 +52,16 @@ Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Az
 ### GCP Firestore
 सक्षम होने पर, `GcpFirestoreService` स्टार्टअप पर Firestore क्लाइंट बनाता है। `GcpFirestore` अनुभाग में `ProjectId`, `DatabaseId` (डिफ़ॉल्ट: "(default)"), `CollectionName` और `CredentialFilePath` (वैकल्पिक) के साथ कॉन्फ़िगरेशन।
 
+### AWS Cognito पहचान प्रबंधन
+सक्षम होने पर, `AddAwsCognitoAuthentication` एक **Amazon Cognito User Pool** के विरुद्ध OpenID Connect प्रमाणीकरण कॉन्फ़िगर करता है — Microsoft Entra ID / Azure AD का AWS समकक्ष। OIDC डिस्कवरी एंडपॉइंट:
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+`AwsCognito` अनुभाग में कॉन्फ़िगर करें: `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret` (User Secrets में संग्रहीत करें) और `Domain` (Cognito होस्टेड UI डोमेन)।
+
+### GCP Identity Platform
+सक्षम होने पर, `AddGcpIdentityAuthentication` **Google OAuth 2.0 / OIDC** का उपयोग करके OpenID Connect प्रमाणीकरण कॉन्फ़िगर करता है — Microsoft Entra ID / Azure AD का GCP समकक्ष। OIDC डिस्कवरी एंडपॉइंट:
+`https://accounts.google.com/.well-known/openid-configuration`
+`GcpIdentity` अनुभाग में कॉन्फ़िगर करें: `ClientId`, `ClientSecret` (User Secrets में संग्रहीत करें) और वैकल्पिक `ProjectId`। **Google Cloud Console → APIs और Services → Credentials** में क्रेडेंशियल प्राप्त करें।
+
 ### सुरक्षित सत्र प्रबंधन
 सत्र **30 मिनट के निष्क्रियता टाइमआउट** के साथ इन-प्रोसेस वितरित मेमोरी कैश का उपयोग करते हैं। सत्र कुकीज़ `HttpOnly`, `Secure = Always` और `SameSite = Strict` के रूप में कॉन्फ़िगर की जाती हैं।
 
@@ -81,8 +91,10 @@ Azure AD प्रमाणीकरण, म्यूचुअल TLS (mTLS), Az
 | `EnableCosmosDb` | `false` | Azure Cosmos DB सेवा |
 | `EnableAwsSecretsManager` | `false` | AWS Secrets Manager स्टब |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | AWS Cognito पहचान प्रबंधन (OpenID Connect) |
 | `EnableGcpSecretManager` | `false` | GCP Secret Manager स्टब |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | GCP Identity Platform (Google OAuth 2.0 / OIDC) |
 | `EnableMtls` | `false` | क्लाइंट TLS सर्टिफिकेट की आवश्यकता |
 | `EnableOcspValidation` | `false` | OCSP सर्टिफिकेट निरसन जाँच (स्टब) |
 

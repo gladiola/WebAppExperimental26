@@ -52,6 +52,16 @@
 ### GCP Firestore
 啟用後，`GcpFirestoreService` 在啟動時建立 Firestore 客戶端。在 `GcpFirestore` 區段中使用 `ProjectId`、`DatabaseId`（預設："(default)"）、`CollectionName` 及 `CredentialFilePath`（選用）進行設定。
 
+### AWS Cognito 身份管理
+啟用後，`AddAwsCognitoAuthentication` 針對 **Amazon Cognito 用戶池** 設定 OpenID Connect 驗證 — 這是 Microsoft Entra ID / Azure AD 的 AWS 對應方案。OIDC 探索端點為：
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+在 `AwsCognito` 區段設定：`Region`、`UserPoolId`、`AppClientId`、`AppClientSecret`（儲存於使用者祕密）及 `Domain`（Cognito 托管介面域名）。
+
+### GCP 身份平台
+啟用後，`AddGcpIdentityAuthentication` 使用 **Google OAuth 2.0 / OIDC** 設定 OpenID Connect 驗證 — 這是 Microsoft Entra ID / Azure AD 的 GCP 對應方案。OIDC 探索端點為：
+`https://accounts.google.com/.well-known/openid-configuration`
+在 `GcpIdentity` 區段設定：`ClientId`、`ClientSecret`（儲存於使用者祕密）及選用的 `ProjectId`。在 **Google Cloud Console → API 和服務 → 憑證** 中取得憑證。
+
 ### 安全的 Session 管理
 Session 使用進程內分散式記憶體快取，具有 **30 分鐘閒置逾時**。Session Cookie 設定為 `HttpOnly`、`Secure = Always` 和 `SameSite = Strict`。
 
@@ -81,8 +91,10 @@ Session 使用進程內分散式記憶體快取，具有 **30 分鐘閒置逾時
 | `EnableCosmosDb` | `false` | Azure Cosmos DB 服務 |
 | `EnableAwsSecretsManager` | `false` | AWS Secrets Manager Stub |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | AWS Cognito 身份管理（OpenID Connect） |
 | `EnableGcpSecretManager` | `false` | GCP Secret Manager Stub |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | GCP 身份平台（Google OAuth 2.0 / OIDC） |
 | `EnableMtls` | `false` | 要求客戶端 TLS 憑證 |
 | `EnableOcspValidation` | `false` | OCSP 憑證撤銷檢查（Stub） |
 

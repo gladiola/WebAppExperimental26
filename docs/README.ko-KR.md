@@ -52,6 +52,16 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 ### GCP Firestore
 활성화되면 `GcpFirestoreService`는 시작 시 Firestore 클라이언트를 빌드합니다. `GcpFirestore` 섹션에서 `ProjectId`, `DatabaseId`(기본값: "(default)"), `CollectionName` 및 `CredentialFilePath`(선택 사항)로 구성합니다.
 
+### AWS Cognito 아이덴티티 관리
+활성화되면 `AddAwsCognitoAuthentication`은 **Amazon Cognito 사용자 풀**에 대한 OpenID Connect 인증을 구성합니다 — Microsoft Entra ID / Azure AD의 AWS 대응물입니다. OIDC 검색 엔드포인트:
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+`AwsCognito` 섹션에서 구성: `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret`(사용자 비밀에 저장), `Domain`(Cognito 호스팅 UI 도메인).
+
+### GCP Identity Platform
+활성화되면 `AddGcpIdentityAuthentication`은 **Google OAuth 2.0 / OIDC**를 사용하여 OpenID Connect 인증을 구성합니다 — Microsoft Entra ID / Azure AD의 GCP 대응물입니다. OIDC 검색 엔드포인트:
+`https://accounts.google.com/.well-known/openid-configuration`
+`GcpIdentity` 섹션에서 구성: `ClientId`, `ClientSecret`(사용자 비밀에 저장), 선택적 `ProjectId`. **Google Cloud Console → API 및 서비스 → 사용자 인증 정보**에서 자격 증명을 받으세요.
+
 ### 보안 세션 관리
 세션은 **30분 유휴 시간 초과**를 사용하는 프로세스 내 분산 메모리 캐시를 사용합니다. 세션 쿠키는 `HttpOnly`, `Secure = Always`, `SameSite = Strict`로 구성됩니다.
 
@@ -81,8 +91,10 @@ Azure AD 인증, mTLS(상호 TLS), Azure Key Vault 인증서 관리, Azure Cosmo
 | `EnableCosmosDb` | `false` | Azure Cosmos DB 서비스 |
 | `EnableAwsSecretsManager` | `false` | AWS Secrets Manager 스텁 |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | AWS Cognito 아이덴티티 관리(OpenID Connect) |
 | `EnableGcpSecretManager` | `false` | GCP Secret Manager 스텁 |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | GCP Identity Platform(Google OAuth 2.0 / OIDC) |
 | `EnableMtls` | `false` | 클라이언트 TLS 인증서 요구 |
 | `EnableOcspValidation` | `false` | OCSP 인증서 해지 확인(스텁) |
 

@@ -45,6 +45,36 @@ namespace WebAppExperimental26.Tests.Models
         }
 
         [Fact]
+        public void DefaultFlags_AwsCognito_IsDisabledByDefault()
+        {
+            var flags = new FeatureFlags();
+            flags.EnableAwsCognito.Should().BeFalse(
+                "AWS Cognito authentication is optional and must be explicitly opted into");
+        }
+
+        [Fact]
+        public void DefaultFlags_GcpIdentity_IsDisabledByDefault()
+        {
+            var flags = new FeatureFlags();
+            flags.EnableGcpIdentity.Should().BeFalse(
+                "GCP Identity authentication is optional and must be explicitly opted into");
+        }
+
+        [Fact]
+        public void DefaultFlags_AwsCognito_CanBeEnabled()
+        {
+            var flags = new FeatureFlags { EnableAwsCognito = true };
+            flags.EnableAwsCognito.Should().BeTrue();
+        }
+
+        [Fact]
+        public void DefaultFlags_GcpIdentity_CanBeEnabled()
+        {
+            var flags = new FeatureFlags { EnableGcpIdentity = true };
+            flags.EnableGcpIdentity.Should().BeTrue();
+        }
+
+        [Fact]
         public void AllFlags_CanBeOverridden()
         {
             // Arrange — simulate an explicit opt-out (e.g. integration test environment)

@@ -18,9 +18,11 @@ namespace WebAppExperimental26.Models.Settings
         // AWS
         public bool EnableAwsSecretsManager { get; set; } = false;
         public bool EnableAwsDynamoDb { get; set; } = false;
+        public bool EnableAwsCognito { get; set; } = false;
 
         // GCP
         public bool EnableGcpSecretManager { get; set; } = false;
         public bool EnableGcpFirestore { get; set; } = false;
+        public bool EnableGcpIdentity { get; set; } = false;
     }
 }

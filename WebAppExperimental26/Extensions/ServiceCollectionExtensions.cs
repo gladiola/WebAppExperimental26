@@ -1,6 +1,7 @@
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.Runtime;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Localization;
@@ -595,6 +596,185 @@ namespace WebAppExperimental26.Extensions
                 services.AddSingleton<IGcpSecretManagerOperationsService, GcpSecretManagerOperationsService>();
 
                 logger.LogInformation("GCP Secret Manager services configured");
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Configure AWS Cognito OpenID Connect authentication.
+        /// Mirrors <see cref="AddAzureAdAuthentication"/> for Microsoft Entra ID / Azure AD.
+        /// AWS Cognito User Pools expose a standards-compliant OIDC discovery endpoint that ASP.NET Core
+        /// can consume directly via the built-in OpenID Connect middleware.
+        /// </summary>
+        public static IServiceCollection AddAwsCognitoAuthentication(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("AWS Cognito Authentication is DISABLED");
+            }
+            else
+            {
+                var settings = configuration.GetSection("AwsCognito").Get<AwsCognitoSettings>()
+                    ?? throw new InvalidOperationException("AwsCognitoSettings not found");
+
+                // The OIDC authority for a Cognito User Pool is:
+                // https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}
+                var authority = $"https://cognito-idp.{settings.Region}.amazonaws.com/{settings.UserPoolId}";
+
+                logger.LogInformation("Configuring AWS Cognito authentication for User Pool: {UserPoolId} in region: {Region}",
+                    settings.UserPoolId, settings.Region);
+
+                services.AddSingleton<IAwsCognitoSettingsService>(new AwsCognitoSettingsService(settings));
+
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = "AwsCognito";
+                })
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddOpenIdConnect("AwsCognito", options =>
+                {
+                    options.Authority = authority;
+                    options.ClientId = settings.AppClientId;
+                    options.ClientSecret = settings.AppClientSecret;
+                    options.ResponseType = "code";
+                    options.CallbackPath = settings.CallbackPath;
+                    options.SignedOutCallbackPath = settings.SignedOutCallbackPath;
+                    options.SaveTokens = true;
+                    options.GetClaimsFromUserInfoEndpoint = true;
+
+                    options.Events = new OpenIdConnectEvents
+                    {
+                        OnRedirectToIdentityProvider = context =>
+                        {
+                            var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                            logger.LogInformation("AWS Cognito: Redirecting to identity provider for path: {Path}", safePath);
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context =>
+                        {
+                            logger.LogError("AWS Cognito: Authentication failed: {Error}", context.Exception?.Message);
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = context =>
+                        {
+                            logger.LogInformation("AWS Cognito: Token validated successfully");
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+
+                services.ConfigureApplicationCookie(options =>
+                {
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                        logger.LogWarning("AWS Cognito: Redirect to login for path: {Path}", safePath);
+                        return Task.CompletedTask;
+                    };
+                });
+
+                services.AddAuthorization();
+
+                logger.LogInformation("AWS Cognito authentication configured with authority: {Authority}", authority);
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Configure Google Cloud Identity Platform (Google OAuth 2.0 / OpenID Connect) authentication.
+        /// Mirrors <see cref="AddAzureAdAuthentication"/> for Microsoft Entra ID / Azure AD.
+        /// Google's OIDC endpoint at https://accounts.google.com is consumed directly via the
+        /// built-in ASP.NET Core OpenID Connect middleware.
+        /// </summary>
+        public static IServiceCollection AddGcpIdentityAuthentication(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger,
+            bool enabled = true)
+        {
+            if (!enabled)
+            {
+                logger.LogWarning("GCP Identity Authentication is DISABLED");
+            }
+            else
+            {
+                var settings = configuration.GetSection("GcpIdentity").Get<GcpIdentitySettings>()
+                    ?? throw new InvalidOperationException("GcpIdentitySettings not found");
+
+                // Google's OIDC discovery endpoint
+                const string authority = "https://accounts.google.com";
+
+                var projectInfo = string.IsNullOrEmpty(settings.ProjectId)
+                    ? string.Empty
+                    : $" (project: {settings.ProjectId})";
+
+                logger.LogInformation("Configuring GCP Identity authentication{ProjectInfo}", projectInfo);
+
+                services.AddSingleton<IGcpIdentitySettingsService>(new GcpIdentitySettingsService(settings));
+
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = "GcpIdentity";
+                })
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddOpenIdConnect("GcpIdentity", options =>
+                {
+                    options.Authority = authority;
+                    options.ClientId = settings.ClientId;
+                    options.ClientSecret = settings.ClientSecret;
+                    options.ResponseType = "code";
+                    options.CallbackPath = settings.CallbackPath;
+                    options.SignedOutCallbackPath = settings.SignedOutCallbackPath;
+                    options.SaveTokens = true;
+                    options.GetClaimsFromUserInfoEndpoint = true;
+
+                    options.Scope.Add("email");
+                    options.Scope.Add("profile");
+
+                    options.Events = new OpenIdConnectEvents
+                    {
+                        OnRedirectToIdentityProvider = context =>
+                        {
+                            var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                            logger.LogInformation("GCP Identity: Redirecting to identity provider for path: {Path}", safePath);
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context =>
+                        {
+                            logger.LogError("GCP Identity: Authentication failed: {Error}", context.Exception?.Message);
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = context =>
+                        {
+                            logger.LogInformation("GCP Identity: Token validated successfully");
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+
+                services.ConfigureApplicationCookie(options =>
+                {
+                    options.Events.OnRedirectToLogin = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        var safePath = context.Request.Path.Value?.Replace("\r", "").Replace("\n", "") ?? string.Empty;
+                        logger.LogWarning("GCP Identity: Redirect to login for path: {Path}", safePath);
+                        return Task.CompletedTask;
+                    };
+                });
+
+                services.AddAuthorization();
+
+                logger.LogInformation("GCP Identity authentication configured with authority: {Authority}", authority);
             }
 
             return services;

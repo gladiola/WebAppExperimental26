@@ -52,6 +52,16 @@ Wenn aktiviert, ruft `GcpSecretManagerOperationsService` Geheimnisse aus Google 
 ### GCP Firestore
 Wenn aktiviert, erstellt `GcpFirestoreService` beim Start den Firestore-Client. Konfiguration im Abschnitt `GcpFirestore` mit den Parametern `ProjectId`, `DatabaseId` (Standard: "(default)"), `CollectionName` und `CredentialFilePath` (optional).
 
+### AWS Cognito Identitätsverwaltung
+Wenn aktiviert, konfiguriert `AddAwsCognitoAuthentication` die OpenID Connect-Authentifizierung gegen einen **Amazon Cognito User Pool** — das AWS-Äquivalent zu Microsoft Entra ID / Azure AD. Der OIDC-Discovery-Endpunkt lautet:
+`https://cognito-idp.{Region}.amazonaws.com/{UserPoolId}/.well-known/openid-configuration`
+Konfiguration im Abschnitt `AwsCognito`: `Region`, `UserPoolId`, `AppClientId`, `AppClientSecret` (in User Secrets speichern) und `Domain` (die Cognito Hosted-UI-Domain).
+
+### GCP Identity Platform
+Wenn aktiviert, konfiguriert `AddGcpIdentityAuthentication` die OpenID Connect-Authentifizierung über **Google OAuth 2.0 / OIDC** — das GCP-Äquivalent zu Microsoft Entra ID / Azure AD. Der OIDC-Discovery-Endpunkt lautet:
+`https://accounts.google.com/.well-known/openid-configuration`
+Konfiguration im Abschnitt `GcpIdentity`: `ClientId`, `ClientSecret` (in User Secrets speichern) und optionale `ProjectId`. Anmeldeinformationen erstellen unter **Google Cloud Console → APIs und Dienste → Anmeldedaten**.
+
 ### Sichere Sitzungsverwaltung
 Sitzungen verwenden einen In-Prozess-Distributed-Memory-Cache mit einem **30-minütigen Leerlauf-Timeout**. Sitzungs-Cookies sind als `HttpOnly`, `Secure = Always` und `SameSite = Strict` konfiguriert.
 
@@ -81,8 +91,10 @@ Alle wichtigen Subsysteme werden durch boolesche Feature-Flags in `appsettings.j
 | `EnableCosmosDb` | `false` | Azure Cosmos DB-Dienst |
 | `EnableAwsSecretsManager` | `false` | AWS Secrets Manager (Stub) |
 | `EnableAwsDynamoDb` | `false` | Amazon DynamoDB |
+| `EnableAwsCognito` | `false` | AWS Cognito Identitätsverwaltung (OpenID Connect) |
 | `EnableGcpSecretManager` | `false` | GCP Secret Manager (Stub) |
 | `EnableGcpFirestore` | `false` | Google Cloud Firestore |
+| `EnableGcpIdentity` | `false` | GCP Identity Platform (Google OAuth 2.0 / OIDC) |
 | `EnableMtls` | `false` | Client-TLS-Zertifikate erforderlich |
 | `EnableOcspValidation` | `false` | OCSP-Zertifikatsperrprüfung (Stub) |
 
