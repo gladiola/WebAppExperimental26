@@ -1,5 +1,38 @@
 # WebAppExperimental26
 
+## 🌐 Language Index
+
+This documentation is available in the following languages:
+
+| Language | File |
+|---|---|
+| Afrikaans (af-ZA) | [docs/README.af-ZA.md](docs/README.af-ZA.md) |
+| Amharic (am-ET) | [docs/README.am-ET.md](docs/README.am-ET.md) |
+| Arabic (ar-SA) | [docs/README.ar-SA.md](docs/README.ar-SA.md) |
+| Bengali (bn-BD) | [docs/README.bn-BD.md](docs/README.bn-BD.md) |
+| German (de-DE) | [docs/README.de-DE.md](docs/README.de-DE.md) |
+| Spanish (es-ES) | [docs/README.es-ES.md](docs/README.es-ES.md) |
+| French (fr-FR) | [docs/README.fr-FR.md](docs/README.fr-FR.md) |
+| Irish (ga-IE) | [docs/README.ga-IE.md](docs/README.ga-IE.md) |
+| Hausa (ha-NG) | [docs/README.ha-NG.md](docs/README.ha-NG.md) |
+| Hawaiian (haw-US) | [docs/README.haw-US.md](docs/README.haw-US.md) |
+| Hindi (hi-IN) | [docs/README.hi-IN.md](docs/README.hi-IN.md) |
+| Haitian Creole (ht-HT) | [docs/README.ht-HT.md](docs/README.ht-HT.md) |
+| Italian (it-IT) | [docs/README.it-IT.md](docs/README.it-IT.md) |
+| Japanese (ja-JP) | [docs/README.ja-JP.md](docs/README.ja-JP.md) |
+| Korean (ko-KR) | [docs/README.ko-KR.md](docs/README.ko-KR.md) |
+| Māori (mi-NZ) | [docs/README.mi-NZ.md](docs/README.mi-NZ.md) |
+| Dutch (nl-NL) | [docs/README.nl-NL.md](docs/README.nl-NL.md) |
+| Portuguese (pt-PT) | [docs/README.pt-PT.md](docs/README.pt-PT.md) |
+| Russian (ru-RU) | [docs/README.ru-RU.md](docs/README.ru-RU.md) |
+| Samoan (sm-WS) | [docs/README.sm-WS.md](docs/README.sm-WS.md) |
+| Swahili (sw-KE) | [docs/README.sw-KE.md](docs/README.sw-KE.md) |
+| Yoruba (yo-NG) | [docs/README.yo-NG.md](docs/README.yo-NG.md) |
+| Chinese Simplified (zh-CN) | [docs/README.zh-CN.md](docs/README.zh-CN.md) |
+| Chinese Traditional (zh-HK) | [docs/README.zh-HK.md](docs/README.zh-HK.md) |
+
+---
+
 An ASP.NET Core 9 Razor Pages web application with Azure AD authentication, mutual TLS (mTLS), Azure Key Vault certificate management, Azure Cosmos DB, Azure Blob Storage, AWS Secrets Manager, Amazon DynamoDB, Google Cloud Secret Manager, Google Cloud Firestore, and a hardened HTTP security layer with nonce-based Content Security Policy.
 
 ---
