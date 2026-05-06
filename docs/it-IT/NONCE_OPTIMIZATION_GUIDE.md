@@ -31,7 +31,7 @@ if (ShouldIgnoreRequest(context.Request))
     var existingNonce = _nonceCatalogService.GetANonce("CSPNonce");
     if (string.IsNullOrEmpty(existingNonce))
     {
-        existingNonce = "static-content-nonce";
+        existingNonce = Nonce.GenerateSecureNonce();
     }
     context.Items["Nonce"] = existingNonce;
     await _next(context);
