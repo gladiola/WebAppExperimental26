@@ -1,6 +1,6 @@
 # Taʻiala Azure Key Vault mo Tusi Faamaonia PFX
 
-## Aso: 2024-12-20
+## Aso Faafou: 2024-12-20
 
 ## Aotelega
 
