@@ -1,6 +1,6 @@
 # Azure Key Vault PFX Certificate Guide
 
-## Date: 2024-12-20
+## Date: 2026-05-07
 
 ## Overview
 
@@ -627,6 +627,6 @@ catch (CryptographicException ex)
 ---
 
 **Status:** ? Guide Complete  
-**Last Updated:** 2024-12-20  
+**Last Updated:** 2026-05-07  
 **Version:** 1.0  
 **Project:** WebAppExperimental26

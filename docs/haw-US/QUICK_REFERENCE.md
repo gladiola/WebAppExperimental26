@@ -208,4 +208,4 @@ Before deploying to production:
 
 **Template Version**: 1.0  
 **ASP.NET Core**: 9.0  
-**Last Updated**: 2024-12-20
+**Last Updated**: 2026-05-07
