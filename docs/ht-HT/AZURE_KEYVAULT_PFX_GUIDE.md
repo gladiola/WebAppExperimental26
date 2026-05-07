@@ -1,6 +1,6 @@
 # Azure Key Vault PFX Certificate Guide
 
-## Date: 2024-12-20
+**Date:** 2024-12-20
 
 ## Overview
 
