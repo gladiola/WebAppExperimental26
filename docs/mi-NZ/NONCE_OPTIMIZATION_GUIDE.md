@@ -114,8 +114,8 @@ public class NonceRequestMiddleware
 
         if (string.IsNullOrEmpty(nonce))
         {
-            nonce = "initial-nonce-placeholder";
-            _logger.LogWarning("No nonce available yet, using placeholder");
+            nonce = Nonce.GenerateSecureNonce();
+            _logger.LogWarning("No nonce available yet, generated secure fallback nonce");
         }
 
         context.Items["Nonce"] = nonce;
@@ -278,7 +278,7 @@ public class OptimizedNonceMiddleware
             var existingNonce = _nonceCatalogService.GetANonce("CSPNonce");
             if (string.IsNullOrEmpty(existingNonce))
             {
-                existingNonce = "static-content-nonce";
+                existingNonce = Nonce.GenerateSecureNonce();
             }
             context.Items["Nonce"] = existingNonce;
             await _next(context);
