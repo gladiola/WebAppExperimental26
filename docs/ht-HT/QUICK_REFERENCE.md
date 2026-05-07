@@ -1,6 +1,6 @@
 # Quick Reference Card - Razor Pages Template
 
-## ?? Getting Started (5 minutes)
+## Getting Started (5 minutes)
 
 ```powershell
 # 1. Run setup script
@@ -11,7 +11,7 @@ dotnet build
 dotnet run
 ```
 
-## ?? Configuration Files
+## Configuration Files
 
 | File | Purpose | Committed? |
 |------|---------|------------|
@@ -19,20 +19,20 @@ dotnet run
 | `appsettings.json` | Your actual config | ? No (git-ignored) |
 | User Secrets | Sensitive values | ? No (local only) |
 
-## ?? Feature Flags (Quick Enable/Disable)
+## Feature Flags (Quick Enable/Disable)
 
 Edit `appsettings.json` ? `FeatureFlags` section:
 
 ```json
 "FeatureFlags": {
-  "EnableAzureAd": false,        // ?? Turn on for auth
-  "EnableNonceServices": false,  // ??? Turn on for CSP
-  "EnableCosmosDb": false,       // ?? Turn on for database
-  "EnableBlobStorage": false     // ?? Turn on for files
+  "EnableAzureAd": false,        // Turn on for auth
+  "EnableNonceServices": false,  // Turn on for CSP
+  "EnableCosmosDb": false,       // Turn on for database
+  "EnableBlobStorage": false     // Turn on for files
 }
 ```
 
-## ?? User Secrets Commands
+## User Secrets Commands
 
 ```powershell
 # Initialize
@@ -51,7 +51,7 @@ dotnet user-secrets remove "AzureAd:ClientSecret"
 dotnet user-secrets clear
 ```
 
-## ?? Required Secrets by Feature
+## Required Secrets by Feature
 
 ### Azure AD Authentication
 ```powershell
@@ -82,7 +82,7 @@ dotnet user-secrets set "BlobSettings:BlobConnectionString" "your-connection-str
 dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "your-secret"
 ```
 
-## ?? Useful Scripts
+## Useful Scripts
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
@@ -91,7 +91,7 @@ dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "your-secret"
 | `IVandKeySampleGenerator.ps1` | Generate keys | `.\IVandKeySampleGenerator.ps1` |
 | `HashInlineScriptPowerShell.ps1` | Calculate CSP hashes | `.\HashInlineScriptPowerShell.ps1` |
 
-## ??? Development Phases
+## Development Phases
 
 ### Phase 1: Basic (5 min setup)
 - ? Session
@@ -127,7 +127,7 @@ dotnet user-secrets set "AzureKeyVault:KeyVaultSecret" "your-secret"
 - Azure resources created
 - Connection strings in User Secrets
 
-## ?? Quick Troubleshooting
+## Quick Troubleshooting
 
 ### Build Errors
 ```powershell
@@ -169,13 +169,13 @@ dotnet user-secrets list
 3. Review browser console for CSP errors
 4. Temporarily disable CSP to test: `EnableCSP: false`
 
-## ?? Documentation
+## Documentation
 
 - **Full docs**: `TEMPLATE_README.md`
 - **Configuration**: `appsettings.template.json`
 - **Namespace**: Run `.\RenameNamespace.ps1 -NewNamespace "YourNamespace"`
 
-## ?? Security Checklist
+## Security Checklist
 
 Before deploying to production:
 
@@ -188,7 +188,7 @@ Before deploying to production:
 - [ ] Authentication enabled for protected pages
 - [ ] Secrets rotated from defaults
 
-## ?? Tips
+## Tips
 
 - **Start simple**: Begin with Phase 1, add features incrementally
 - **Use WhatIf**: Test scripts with `-WhatIf` before applying
@@ -196,7 +196,7 @@ Before deploying to production:
 - **Verify secrets**: Run `dotnet user-secrets list` to see what's configured
 - **Clean builds**: If weird errors, try `dotnet clean && dotnet build`
 
-## ?? Help
+## Help
 
 1. Read `TEMPLATE_README.md`
 2. Check `appsettings.template.json` comments

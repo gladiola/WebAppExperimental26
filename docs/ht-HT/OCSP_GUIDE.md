@@ -414,9 +414,9 @@ To make OCSP fully functional:
 1. ? **Configuration Complete** - Settings are ready
 2. ? **Service Interface Complete** - API is defined
 3. ? **Tests Complete** - 30+ unit tests included
-4. ?? **OCSP Protocol** - Need to implement RFC 6960
-5. ?? **OCSP Server** - Need to deploy OCSP responder
-6. ?? **Integration** - Connect with mTLS authentication
+4. [ ] **OCSP Protocol** - Need to implement RFC 6960
+5. [ ] **OCSP Server** - Need to deploy OCSP responder
+6. [ ] **Integration** - Connect with mTLS authentication
 
 ---
 
@@ -430,6 +430,6 @@ To make OCSP fully functional:
 ---
 
 **Status:** ? Template Ready  
-**OCSP Protocol:** ?? To Be Implemented  
-**OCSP Server:** ?? To Be Deployed  
+**OCSP Protocol:** [ ] To Be Implemented  
+**OCSP Server:** [ ] To Be Deployed  
 **Tests:** ? 30+ Tests Included
