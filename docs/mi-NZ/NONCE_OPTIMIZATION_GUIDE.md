@@ -115,7 +115,7 @@ public class NonceRequestMiddleware
         if (string.IsNullOrEmpty(nonce))
         {
             nonce = Nonce.GenerateSecureNonce();
-            _logger.LogWarning("No nonce available yet, generated secure fallback nonce");
+            _logger.LogWarning("No nonce available yet, i waihanga nonce haumaru mō te fallback");
         }
 
         context.Items["Nonce"] = nonce;
