@@ -97,7 +97,7 @@ Je hebt een aparte OCSP responder nodig die:
 
 ---
 
-## Gebruiksv oorbeeld
+## Gebruiksvoorbeeld
 
 ### Basisvalidatie van certificaat
 
