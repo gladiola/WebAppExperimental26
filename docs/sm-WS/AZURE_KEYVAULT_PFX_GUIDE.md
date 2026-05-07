@@ -1,6 +1,6 @@
 # Taʻiala Azure Key Vault mo Tusi Faamaonia PFX
 
-## Aso Faafou: 2024-12-20
+## Aso Faafou: 2026-05-07
 
 ## Aotelega
 
@@ -141,5 +141,5 @@ A manaʻomia permissions uma e lua: metadata mai certificate API, private key ma
 ---
 
 **Tulaga:** ✅ Taʻiala ua saunia  
-**Toe faafou mulimuli:** 2024-12-20  
+**Toe faafou mulimuli:** 2026-05-07  
 **Poloketi:** WebAppExperimental26
