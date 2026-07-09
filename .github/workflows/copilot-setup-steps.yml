@@ -33,7 +33,9 @@ jobs:
           dotnet-version: "9.0.x"
 
       - name: Restore NuGet packages
-        run: dotnet restore WebAppExperimental26.sln
+        run: |
+          SLN=$(find . -maxdepth 2 -name "*.sln" | head -1)
+          if [ -n "$SLN" ]; then dotnet restore "$SLN"; else dotnet restore; fi
 
       # -----------------------------------------------------------------------
       # Skill 4 — Azure Integration
