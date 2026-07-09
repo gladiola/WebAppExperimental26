@@ -1,0 +1,117 @@
+name: "Copilot Setup Steps"
+
+# Run automatically when this file changes, and allow manual runs from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` for Copilot to pick it up.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Skills 2, 3, 6, 7 — Security Review, ASP.NET Core Scaffolding,
+      # HTTP Security Hardening, Certificate & PKI Management
+      # Requires the .NET 9 SDK to build, test, and scaffold the solution.
+      # -----------------------------------------------------------------------
+      - name: Set up .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore NuGet packages
+        run: dotnet restore WebAppExperimental26.sln
+
+      # -----------------------------------------------------------------------
+      # Skill 4 — Azure Integration
+      # Azure CLI is used to interact with Azure Key Vault, Cosmos DB, Blob
+      # Storage, and to manage service principals / managed identities.
+      # The runner already ships with the Azure CLI; this step upgrades it to
+      # the latest release and verifies the installation.
+      # -----------------------------------------------------------------------
+      - name: Verify / upgrade Azure CLI
+        run: |
+          az version
+          # Install storage-preview to enable blob-level immutability and
+          # data-plane operations used by the Azure Blob Storage integration.
+          if ! az extension show --name storage-preview &>/dev/null; then
+            az extension add --name storage-preview --allow-preview
+          fi
+
+      # -----------------------------------------------------------------------
+      # Skill 5 — Multi-Cloud Secrets & Storage (AWS side)
+      # AWS CLI is pre-installed on ubuntu-latest; verify it is available so
+      # Copilot can call Secrets Manager and DynamoDB APIs during development.
+      # -----------------------------------------------------------------------
+      - name: Verify AWS CLI
+        run: aws --version
+
+      # -----------------------------------------------------------------------
+      # Skill 5 — Multi-Cloud Secrets & Storage (GCP side)
+      # The Google Cloud CLI (gcloud) is NOT pre-installed on ubuntu-latest.
+      # Install it so Copilot can interact with Secret Manager and Firestore.
+      # -----------------------------------------------------------------------
+      - name: Install Google Cloud CLI
+        run: |
+          curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+            | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] \
+            https://packages.cloud.google.com/apt cloud-sdk main" \
+            | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+          sudo apt-get update -qq
+          sudo apt-get install -y google-cloud-cli
+          gcloud version
+
+      # -----------------------------------------------------------------------
+      # Skill 7 — Certificate & PKI Management (mTLS + OCSP)
+      # OpenSSL is already present; install mkcert for easy local CA/cert
+      # generation so Copilot can produce test certificates for mTLS guides
+      # and OCSP scaffolding without touching a real PKI.
+      # -----------------------------------------------------------------------
+      - name: Install mkcert
+        run: |
+          sudo apt-get install -y libnss3-tools
+          ARCH="$(uname -m)"
+          case "$ARCH" in
+            x86_64)  MKCERT_ARCH="linux-amd64" ;;
+            aarch64) MKCERT_ARCH="linux-arm64" ;;
+            *)       echo "mkcert installation only configured for x86_64 and aarch64 architectures; got: $ARCH"; exit 1 ;;
+          esac
+          sudo curl -fsSL \
+            "https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-${MKCERT_ARCH}" \
+            -o /usr/local/bin/mkcert
+          sudo chmod +x /usr/local/bin/mkcert
+          mkcert -version
+          openssl version
+
+      # -----------------------------------------------------------------------
+      # Skill 1 — Localization & Documentation Parity
+      # Python 3 is pre-installed; install the extra libraries Copilot needs
+      # to diff locale folders, detect missing files, and batch-validate the
+      # docs/*/  inventory against docs/en-US/.
+      # -----------------------------------------------------------------------
+      - name: Set up Python locale-diff tooling
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install tabulate rich
+
+      # -----------------------------------------------------------------------
+      # Existing repo scripts — PowerShell Core
+      # scripts/add-submodule.sh and several .ps1 helpers in Tests/ rely on
+      # PowerShell. pwsh is pre-installed on ubuntu-latest; verify it here.
+      # -----------------------------------------------------------------------
+      - name: Verify PowerShell Core
+        run: pwsh --version
