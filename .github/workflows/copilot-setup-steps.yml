@@ -45,7 +45,7 @@ jobs:
       - name: Verify / upgrade Azure CLI
         run: |
           az version
-          az extension add --name storage-preview --allow-preview true 2>/dev/null || true
+          az extension add --name storage-preview --allow-preview 2>/dev/null || true
 
       # -----------------------------------------------------------------------
       # Skill 5 — Multi-Cloud Secrets & Storage (AWS side)
@@ -80,8 +80,14 @@ jobs:
       - name: Install mkcert
         run: |
           sudo apt-get install -y libnss3-tools
-          curl -fsSL \
-            "https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-$(uname -m | sed 's/x86_64/linux-amd64/')" \
+          ARCH="$(uname -m)"
+          case "$ARCH" in
+            x86_64)  MKCERT_ARCH="linux-amd64" ;;
+            aarch64) MKCERT_ARCH="linux-arm64" ;;
+            *)        echo "Unsupported architecture: $ARCH"; exit 1 ;;
+          esac
+          sudo curl -fsSL \
+            "https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-${MKCERT_ARCH}" \
             -o /usr/local/bin/mkcert
           sudo chmod +x /usr/local/bin/mkcert
           mkcert -version
